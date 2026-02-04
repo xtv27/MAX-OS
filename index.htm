@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Обратный отсчет до запуска MAX OS</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+            color: #fff;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            overflow-x: hidden;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1000px;
+            width: 100%;
+            text-align: center;
+            padding: 30px;
+            background-color: rgba(0, 0, 0, 0.7);
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            position: relative;
+            z-index: 1;
+            margin-top: 20px;
+        }
+        
+        .header {
+            margin-bottom: 30px;
+        }
+        
+        h1 {
+            font-size: 3.5rem;
+            margin-bottom: 10px;
+            background: linear-gradient(to right, #00b4db, #0083b0);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+        
+        .subtitle {
+            font-size: 1.5rem;
+            margin-bottom: 30px;
+            color: #aaa;
+        }
+        
+        .countdown-container {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 25px;
+            margin: 40px 0;
+        }
+        
+        .countdown-box {
+            background: rgba(0, 0, 0, 0.8);
+            border-radius: 15px;
+            padding: 25px 20px;
+            min-width: 150px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: transform 0.3s;
+        }
+        
+        .countdown-box:hover {
+            transform: translateY(-10px);
+        }
+        
+        .countdown-value {
+            font-size: 4rem;
+            font-weight: bold;
+            color: #00b4db;
+            text-shadow: 0 0 15px rgba(0, 180, 219, 0.7);
+        }
+        
+        .countdown-label {
+            font-size: 1.2rem;
+            margin-top: 10px;
+            color: #aaa;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .launch-info {
+            font-size: 1.8rem;
+            margin: 30px 0;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.6);
+            border-radius: 15px;
+            border-left: 5px solid #00b4db;
+        }
+        
+        .launch-date {
+            color: #00b4db;
+            font-weight: bold;
+        }
+        
+        .status {
+            font-size: 1.3rem;
+            margin: 20px 0;
+            padding: 15px;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.1);
+        }
+        
+        .explosion {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.9);
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        
+        .explosion.active {
+            display: flex;
+            animation: explosionEffect 2s forwards;
+        }
+        
+        .explosion-text {
+            font-size: 5rem;
+            color: #ff0000;
+            text-transform: uppercase;
+            font-weight: bold;
+            margin-bottom: 40px;
+            text-shadow: 0 0 30px #ff0000;
+            animation: pulse 1s infinite;
+        }
+        
+        .reload-btn {
+            background: #ff0000;
+            color: white;
+            border: none;
+            padding: 20px 40px;
+            font-size: 1.8rem;
+            border-radius: 10px;
+            cursor: pointer;
+            margin-top: 30px;
+            transition: all 0.3s;
+            box-shadow: 0 0 30px rgba(255, 0, 0, 0.7);
+        }
+        
+        .reload-btn:hover {
+            background: #cc0000;
+            transform: scale(1.05);
+        }
+        
+        .os-icon {
+            font-size: 5rem;
+            margin-bottom: 20px;
+            color: #00b4db;
+        }
+        
+        .footer {
+            margin-top: 30px;
+            color: #777;
+            font-size: 1rem;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.1); opacity: 0.9; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        
+        @keyframes explosionEffect {
+            0% { background-color: rgba(0, 0, 0, 0.9); }
+            50% { background-color: rgba(255, 50, 0, 0.95); }
+            100% { background-color: rgba(0, 0, 0, 0.9); }
+        }
+        
+        .particle {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background-color: #ff9900;
+            border-radius: 50%;
+            opacity: 0;
+        }
+        
+        @media (max-width: 768px) {
+            h1 { font-size: 2.5rem; }
+            .countdown-box { min-width: 120px; padding: 20px 15px; }
+            .countdown-value { font-size: 3rem; }
+            .launch-info { font-size: 1.4rem; }
+            .explosion-text { font-size: 3rem; }
+        }
+        
+        @media (max-width: 480px) {
+            h1 { font-size: 2rem; }
+            .countdown-box { min-width: 90px; padding: 15px 10px; }
+            .countdown-value { font-size: 2.2rem; }
+            .countdown-label { font-size: 1rem; }
+            .launch-info { font-size: 1.2rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="os-icon">
+                <i class="fas fa-desktop"></i>
+            </div>
+            <h1>MAX OS</h1>
+            <div class="subtitle">Новая операционная система</div>
+        </div>
+        
+        <div class="status">
+            <i class="fas fa-exclamation-triangle"></i> НАПИСАНО ДО ЗАПУСКА MAX OS. ОСТАЛОСЬ:
+        </div>
+        
+        <div class="countdown-container">
+            <div class="countdown-box">
+                <div class="countdown-value" id="days">00</div>
+                <div class="countdown-label">Дней</div>
+            </div>
+            <div class="countdown-box">
+                <div class="countdown-value" id="hours">00</div>
+                <div class="countdown-label">Часов</div>
+            </div>
+            <div class="countdown-box">
+                <div class="countdown-value" id="minutes">00</div>
+                <div class="countdown-label">Минут</div>
+            </div>
+            <div class="countdown-box">
+                <div class="countdown-value" id="seconds">00</div>
+                <div class="countdown-label">Секунд</div>
+            </div>
+        </div>
+        
+        <div class="launch-info">
+            Дата запуска: <span class="launch-date">04.02.2026 в 13:00 по МСК</span>
+        </div>
+        
+        <div class="footer">
+            <p>Обратный отсчет до релиза MAX OS - революционной операционной системы нового поколения</p>
+        </div>
+    </div>
+    
+    <div class="explosion" id="explosion">
+        <div class="explosion-text">ВЗРЫВ!</div>
+        <button class="reload-btn" id="reloadBtn">
+            <i class="fas fa-redo"></i> ПЕРЕЗАГРУЗИТЬ СТРАНИЦУ
+        </button>
+    </div>
+
+    <script>
+        // Установка даты запуска: 4 февраля 2026 года, 13:00 по МСК
+        const launchDate = new Date('February 4, 2026 13:00:00 GMT+03:00').getTime();
+        
+        // Обновление отсчета каждую секунду
+        const countdownInterval = setInterval(function() {
+            const now = new Date().getTime();
+            const timeLeft = launchDate - now;
+            
+            // Если отсчет закончился
+            if (timeLeft <= 0) {
+                clearInterval(countdownInterval);
+                showExplosion();
+                return;
+            }
+            
+            // Расчет дней, часов, минут и секунд
+            const days = Math.floor(timeLeft / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((timeLeft % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
+            
+            // Обновление элементов на странице
+            document.getElementById('days').innerHTML = formatTime(days);
+            document.getElementById('hours').innerHTML = formatTime(hours);
+            document.getElementById('minutes').innerHTML = formatTime(minutes);
+            document.getElementById('seconds').innerHTML = formatTime(seconds);
+        }, 1000);
+        
+        // Форматирование времени (добавление ведущего нуля)
+        function formatTime(time) {
+            return time < 10 ? `0${time}` : time;
+        }
+        
+        // Показать анимацию взрыва
+        function showExplosion() {
+            const explosion = document.getElementById('explosion');
+            explosion.classList.add('active');
+            
+            // Создание частиц взрыва
+            createParticles();
+            
+            // Автоматическая перезагрузка страницы через 5 секунд
+            setTimeout(() => {
+                location.reload();
+            }, 5000);
+        }
+        
+        // Создание частиц для анимации взрыва
+        function createParticles() {
+            const explosion = document.getElementById('explosion');
+            
+            for (let i = 0; i < 100; i++) {
+                const particle = document.createElement('div');
+                particle.classList.add('particle');
+                
+                // Случайная позиция
+                const x = Math.random() * 100;
+                const y = Math.random() * 100;
+                
+                // Случайный размер
+                const size = Math.random() * 20 + 5;
+                
+                // Случайный цвет
+                const colors = ['#ff0000', '#ff9900', '#ffff00', '#ffffff'];
+                const color = colors[Math.floor(Math.random() * colors.length)];
+                
+                // Установка свойств частицы
+                particle.style.left = `${x}%`;
+                particle.style.top = `${y}%`;
+                particle.style.width = `${size}px`;
+                particle.style.height = `${size}px`;
+                particle.style.backgroundColor = color;
+                
+                // Анимация частицы
+                const duration = Math.random() * 1 + 0.5;
+                const delay = Math.random() * 0.5;
+                
+                particle.style.animation = `
+                    particleMove ${duration}s ease-out ${delay}s forwards,
+                    particleFade ${duration}s ease-out ${delay}s forwards
+                `;
+                
+                // Добавление частицы на страницу
+                explosion.appendChild(particle);
+                
+                // Удаление частицы после завершения анимации
+                setTimeout(() => {
+                    if (particle.parentNode) {
+                        particle.parentNode.removeChild(particle);
+                    }
+                }, (duration + delay) * 1000);
+            }
+            
+            // Добавление стилей для анимации частиц
+            const style = document.createElement('style');
+            style.innerHTML = `
+                @keyframes particleMove {
+                    0% {
+                        transform: translate(0, 0) scale(1);
+                        opacity: 1;
+                    }
+                    100% {
+                        transform: translate(${Math.random() * 200 - 100}px, ${Math.random() * 200 - 100}px) scale(0);
+                        opacity: 0;
+                    }
+                }
+                
+                @keyframes particleFade {
+                    0% { opacity: 1; }
+                    100% { opacity: 0; }
+                }
+            `;
+            document.head.appendChild(style);
+        }
+        
+        // Обработчик кнопки перезагрузки
+        document.getElementById('reloadBtn').addEventListener('click', function() {
+            location.reload();
+        });
+        
+        // Инициализация отсчета при загрузке страницы
+        window.onload = function() {
+            // Вызовем обновление отсчета сразу, чтобы не ждать первую секунду
+            const now = new Date().getTime();
+            const timeLeft = launchDate - now;
+            
+            if (timeLeft <= 0) {
+                clearInterval(countdownInterval);
+                showExplosion();
+                return;
+            }
+            
+            const days = Math.floor(timeLeft / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((timeLeft % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
+            
+            document.getElementById('days').innerHTML = formatTime(days);
+            document.getElementById('hours').innerHTML = formatTime(hours);
+            document.getElementById('minutes').innerHTML = formatTime(minutes);
+            document.getElementById('seconds').innerHTML = formatTime(seconds);
+        };
+    </script>
+</body>
+</html>
