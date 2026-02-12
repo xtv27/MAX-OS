@@ -1,1 +1,2381 @@
--
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MAX OS 0.01.0 beta</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            user-select: none;
+        }
+
+        body {
+            background: #000;
+            overflow: hidden;
+        }
+
+        /* ===== ЭКРАН ЗАГРУЗКИ ===== */
+        #bootScreen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #000;
+            background-image: linear-gradient(rgba(0,0,0,0.9), rgba(0,0,0,0.9)), 
+                            url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="400" height="400" viewBox="0 0 200 200"><defs><linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="%234ECDC4"/><stop offset="100%" stop-color="%23FF6B6B"/></linearGradient></defs><path d="M37.5,186c-12.1-10.5-11.8-32.3-7.2-46.7c4.8-15,13.1-17.8,30.1-36.7C91,68.8,83.5,56.7,103.4,45c22.2-13.1,51.1-9.5,69.6-1.6c18.1,7.8,15.7,15.3,43.3,33.2c28.8,18.8,37.8,10.5,50.7,33.9c13.8,24.8-5.2,42.9-21.3,36.7c-8.2-3.1-17.3-5.8-31.1-8.3c-35.3-6.4-65.9-1.4-81.9,4c-27.4,9.1-30.5,20.3-60.1,28.4C87.6,198.4,76.9,204,37.5,186z" fill="url(%23g)" opacity="0.5"/></svg>');
+            color: #fff;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            transition: opacity 0.5s;
+        }
+
+        .boot-logo {
+            font-size: 4.5rem;
+            font-weight: bold;
+            margin-bottom: 2rem;
+            background: linear-gradient(90deg, #ff6b6b, #4ecdc4, #45b7d1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 30px rgba(78, 205, 196, 0.5);
+            animation: glow 2s infinite alternate;
+        }
+
+        @keyframes glow {
+            from { text-shadow: 0 0 20px rgba(78, 205, 196, 0.5); }
+            to { text-shadow: 0 0 30px rgba(255, 107, 107, 0.7); }
+        }
+
+        .boot-progress {
+            width: 300px;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+            overflow: hidden;
+            margin-top: 20px;
+        }
+
+        .boot-progress-bar {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #ff6b6b, #4ecdc4);
+            transition: width 0.3s;
+            border-radius: 3px;
+        }
+
+        .boot-text {
+            margin-top: 20px;
+            color: #8ba0b5;
+            font-size: 0.9rem;
+        }
+
+        /* ===== ЭКРАН ВХОДА ===== */
+        #loginScreen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #000;
+            background-image: linear-gradient(rgba(0,0,0,0.85), rgba(0,0,0,0.85)), 
+                            url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" opacity="0.1"><path d="M0,50 C20,0 50,0 50,50 C50,100 80,100 100,50" stroke="white" fill="none"/></svg>');
+            background-size: cover;
+            background-position: center;
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 999;
+        }
+
+        .login-container {
+            background: rgba(20, 20, 20, 0.9);
+            backdrop-filter: blur(20px);
+            padding: 50px 40px;
+            border-radius: 25px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
+            width: 350px;
+        }
+
+        .login-title {
+            color: white;
+            font-size: 2.8rem;
+            margin-bottom: 10px;
+            background: linear-gradient(90deg, #ff6b6b, #4ecdc4);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .login-subtitle {
+            color: #8ba0b5;
+            margin-bottom: 40px;
+            font-size: 0.9rem;
+        }
+
+        .login-input {
+            width: 100%;
+            padding: 15px 25px;
+            margin: 10px 0;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 30px;
+            background: rgba(255, 255, 255, 0.05);
+            color: white;
+            font-size: 1rem;
+            text-align: center;
+            transition: all 0.3s;
+        }
+
+        .login-input:focus {
+            outline: none;
+            border-color: #4ecdc4;
+            box-shadow: 0 0 15px rgba(78, 205, 196, 0.3);
+        }
+
+        .login-button {
+            width: 100%;
+            padding: 15px;
+            margin-top: 20px;
+            border: none;
+            border-radius: 30px;
+            background: linear-gradient(90deg, #ff6b6b, #ff8e53);
+            color: white;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .login-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(255, 107, 107, 0.3);
+        }
+
+        .login-create {
+            margin-top: 20px;
+            color: #8ba0b5;
+            font-size: 0.9rem;
+            cursor: pointer;
+            text-decoration: underline;
+            transition: color 0.3s;
+        }
+
+        .login-create:hover {
+            color: #4ecdc4;
+        }
+
+        /* ===== РАБОЧИЙ СТОЛ ===== */
+        #desktop {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #000;
+            background-image: url('https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1920&q=80&auto=format&fit=crop');
+            background-size: cover;
+            background-position: center;
+            display: none;
+            overflow: hidden;
+            transition: filter 0.3s;
+        }
+
+        .desktop-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.4);
+        }
+
+        /* Панель задач */
+        #taskbar {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 50px;
+            background: rgba(10, 10, 10, 0.8);
+            backdrop-filter: blur(15px);
+            display: flex;
+            align-items: center;
+            padding: 0 25px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            z-index: 900;
+        }
+
+        #time {
+            color: white;
+            font-size: 0.9rem;
+            margin-left: auto;
+            font-family: 'Courier New', monospace;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 5px 15px;
+            border-radius: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        #showPanel {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.8rem;
+            cursor: pointer;
+            margin-right: 20px;
+            transition: transform 0.3s;
+        }
+
+        #showPanel:hover {
+            transform: scale(1.2);
+        }
+
+        /* Значки рабочего стола */
+        .desktop-icons {
+            padding: 30px;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, 90px);
+            grid-gap: 25px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .desktop-icon {
+            width: 90px;
+            height: 90px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            text-align: center;
+            cursor: pointer;
+            border-radius: 15px;
+            padding: 15px;
+            transition: all 0.3s;
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .desktop-icon:hover {
+            background: rgba(255, 255, 255, 0.15);
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .desktop-icon i {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));
+        }
+
+        .desktop-icon-text {
+            font-size: 0.85rem;
+            text-shadow: 0 1px 3px rgba(0,0,0,0.8);
+            font-weight: 500;
+        }
+
+        /* ===== ШТОРКА ===== */
+        #notificationPanel {
+            position: fixed;
+            top: -400px;
+            right: 15px;
+            width: 380px;
+            height: 450px;
+            background: rgba(15, 15, 15, 0.95);
+            backdrop-filter: blur(25px);
+            border-radius: 25px;
+            padding: 25px;
+            color: white;
+            z-index: 1001;
+            transition: top 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
+            overflow-y: auto;
+        }
+
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+        }
+
+        .panel-title {
+            font-size: 1.4rem;
+            font-weight: bold;
+            background: linear-gradient(90deg, #ff6b6b, #4ecdc4);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .panel-close {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.8rem;
+            cursor: pointer;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.3s;
+        }
+
+        .panel-close:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        /* Быстрые настройки */
+        .quick-settings {
+            margin-bottom: 30px;
+        }
+
+        .settings-title {
+            font-size: 1.1rem;
+            margin-bottom: 20px;
+            color: white;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .settings-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .setting-item {
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 15px;
+            padding: 15px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .setting-item:hover {
+            background: rgba(255, 255, 255, 0.12);
+            transform: translateY(-3px);
+        }
+
+        .setting-item i {
+            font-size: 1.5rem;
+            margin-bottom: 10px;
+            color: #4ecdc4;
+        }
+
+        .setting-item.active {
+            background: rgba(78, 205, 196, 0.2);
+            border-color: rgba(78, 205, 196, 0.3);
+        }
+
+        /* Слайдеры настроек */
+        .slider-container {
+            margin-bottom: 25px;
+        }
+
+        .slider-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            color: #8ba0b5;
+        }
+
+        .slider {
+            width: 100%;
+            height: 6px;
+            -webkit-appearance: none;
+            appearance: none;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+            outline: none;
+        }
+
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #4ecdc4;
+            cursor: pointer;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .slider::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #4ecdc4;
+            cursor: pointer;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+        }
+
+        /* Уведомления */
+        .notifications-section {
+            margin-top: 30px;
+        }
+
+        .notifications-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        #clearNotifications {
+            background: rgba(255, 107, 107, 0.2);
+            color: #ff6b6b;
+            border: 1px solid rgba(255, 107, 107, 0.3);
+            border-radius: 15px;
+            padding: 8px 15px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: all 0.3s;
+        }
+
+        #clearNotifications:hover {
+            background: rgba(255, 107, 107, 0.3);
+        }
+
+        .notification-item {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 15px;
+            border-radius: 15px;
+            margin-bottom: 10px;
+            border-left: 4px solid #4ecdc4;
+            transition: all 0.3s;
+        }
+
+        .notification-item:hover {
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .notification-title {
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: white;
+        }
+
+        .notification-text {
+            color: #8ba0b5;
+            font-size: 0.9rem;
+        }
+
+        .empty-notifications {
+            text-align: center;
+            color: #8ba0b5;
+            padding: 30px;
+            font-style: italic;
+        }
+
+        /* ===== ОКНА ПРИЛОЖЕНИЙ ===== */
+        .window {
+            position: absolute;
+            top: 50px;
+            left: 50px;
+            width: 900px;
+            height: 600px;
+            background: rgba(20, 20, 20, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 30px 70px rgba(0, 0, 0, 0.5);
+            display: none;
+            overflow: hidden;
+            z-index: 100;
+            min-width: 400px;
+            min-height: 300px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+        }
+
+        .window-header {
+            height: 50px;
+            background: linear-gradient(90deg, #1a1a1a, #2a2a2a);
+            color: white;
+            display: flex;
+            align-items: center;
+            padding: 0 20px;
+            justify-content: space-between;
+            cursor: move;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .window-title {
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+
+        .window-controls {
+            display: flex;
+            gap: 12px;
+        }
+
+        .window-control {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .window-control:hover {
+            transform: scale(1.2);
+        }
+
+        .close { background: #ff5f57; }
+        .minimize { background: #ffbd2e; }
+        .maximize { background: #28ca42; }
+
+        .window-content {
+            height: calc(100% - 50px);
+            padding: 0;
+            background: rgba(15, 15, 15, 0.9);
+            color: white;
+            overflow: hidden;
+        }
+
+        /* ===== ИГРА SHOOTER ===== */
+        #shooterWindow .window-content {
+            background: linear-gradient(135deg, #0a0f1f 0%, #1a1f2f 100%);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .game-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at center, #1a2f3f 0%, #0a1a2a 100%);
+            overflow: hidden;
+        }
+
+        #gameCanvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+
+        .game-hud {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            color: white;
+            font-family: 'Courier New', monospace;
+            text-shadow: 0 0 10px rgba(0,0,0,0.5);
+            z-index: 10;
+            background: rgba(0,0,0,0.8);
+            padding: 20px 30px;
+            border-radius: 15px;
+            border: 2px solid rgba(78,205,196,0.3);
+            backdrop-filter: blur(5px);
+            font-size: 1.2rem;
+        }
+
+        .game-hud span {
+            color: #ff6b6b;
+            font-weight: bold;
+            font-size: 1.8rem;
+            text-shadow: 0 0 10px rgba(255,107,107,0.5);
+        }
+
+        .game-controls {
+            position: absolute;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.9);
+            padding: 20px 40px;
+            border-radius: 50px;
+            color: white;
+            display: flex;
+            gap: 40px;
+            backdrop-filter: blur(10px);
+            border: 2px solid #4ecdc4;
+            z-index: 10;
+            font-size: 1.1rem;
+            box-shadow: 0 0 30px rgba(78,205,196,0.3);
+        }
+
+        .game-controls i {
+            color: #4ecdc4;
+            margin-right: 10px;
+        }
+
+        .game-start {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0,0,0,0.95);
+            padding: 60px 80px;
+            border-radius: 30px;
+            text-align: center;
+            z-index: 21;
+            border: 2px solid #4ecdc4;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 0 50px rgba(78,205,196,0.5);
+        }
+
+        .game-start h2 {
+            font-size: 3.5rem;
+            color: #4ecdc4;
+            margin-bottom: 30px;
+            text-shadow: 0 0 20px rgba(78,205,196,0.5);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        .game-start p {
+            font-size: 1.3rem;
+            color: #8ba0b5;
+            margin-bottom: 40px;
+            max-width: 400px;
+            line-height: 1.6;
+        }
+
+        .game-start button {
+            background: linear-gradient(135deg, #4ecdc4, #45b7d1);
+            border: none;
+            color: white;
+            padding: 20px 60px;
+            font-size: 1.5rem;
+            border-radius: 50px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s;
+            border: 2px solid rgba(255,255,255,0.2);
+            animation: glow 2s infinite;
+        }
+
+        .game-start button:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 40px rgba(78,205,196,0.8);
+        }
+
+        .game-over {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0,0,0,0.95);
+            padding: 60px 80px;
+            border-radius: 30px;
+            text-align: center;
+            z-index: 20;
+            display: none;
+            border: 2px solid #ff6b6b;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 0 50px rgba(255,107,107,0.5);
+        }
+
+        .game-over h2 {
+            font-size: 3.5rem;
+            color: #ff6b6b;
+            margin-bottom: 30px;
+            text-shadow: 0 0 20px rgba(255,107,107,0.5);
+        }
+
+        .game-over p {
+            font-size: 1.8rem;
+            color: white;
+            margin-bottom: 40px;
+        }
+
+        .game-over button {
+            background: linear-gradient(135deg, #ff6b6b, #ff8e53);
+            border: none;
+            color: white;
+            padding: 20px 60px;
+            font-size: 1.5rem;
+            border-radius: 50px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+
+        .game-over button:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 40px rgba(255,107,107,0.8);
+        }
+
+        .enemy {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            background: radial-gradient(circle at 30% 30%, #ff6b6b, #c44f4f);
+            border-radius: 50%;
+            border: 2px solid rgba(255,255,255,0.5);
+            box-shadow: 0 0 20px rgba(255,107,107,0.5);
+        }
+
+        .bullet {
+            position: absolute;
+            width: 6px;
+            height: 6px;
+            background: #4ecdc4;
+            border-radius: 50%;
+            box-shadow: 0 0 10px #4ecdc4;
+        }
+
+        .player {
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            background: radial-gradient(circle at 30% 30%, #4ecdc4, #2d7a75);
+            border-radius: 50%;
+            border: 2px solid white;
+            box-shadow: 0 0 30px #4ecdc4;
+        }
+
+        .crosshair {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            border: 2px solid white;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+            z-index: 15;
+            box-shadow: 0 0 20px rgba(255,255,255,0.5);
+        }
+
+        .crosshair::before,
+        .crosshair::after {
+            content: '';
+            position: absolute;
+            background: white;
+            box-shadow: 0 0 10px white;
+        }
+
+        .crosshair::before {
+            width: 20px;
+            height: 2px;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .crosshair::after {
+            width: 2px;
+            height: 20px;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        /* Браузер */
+        #browserWindow .window-content {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .browser-bar {
+            display: flex;
+            padding: 15px;
+            background: rgba(30, 30, 30, 0.9);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        #browserUrl {
+            flex: 1;
+            padding: 12px 20px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 25px;
+            margin: 0 15px;
+            background: rgba(0, 0, 0, 0.3);
+            color: white;
+            font-size: 1rem;
+        }
+
+        #browserUrl:focus {
+            outline: none;
+            border-color: #4ecdc4;
+        }
+
+        .browser-button {
+            padding: 12px 25px;
+            background: linear-gradient(90deg, #4a6491, #2c3e50);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: transform 0.2s;
+        }
+
+        .browser-button:hover {
+            transform: scale(1.05);
+        }
+
+        #browserFrame {
+            flex: 1;
+            border: none;
+            background: white;
+        }
+
+        /* Файловый менеджер */
+        .file-manager {
+            display: flex;
+            height: 100%;
+        }
+
+        .file-sidebar {
+            width: 220px;
+            background: rgba(25, 25, 25, 0.9);
+            border-right: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 20px;
+        }
+
+        .file-actions {
+            margin-bottom: 30px;
+        }
+
+        .file-action-btn {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 12px;
+            background: linear-gradient(90deg, #4a6491, #2c3e50);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: transform 0.2s;
+        }
+
+        .file-action-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .file-content {
+            flex: 1;
+            padding: 25px;
+            overflow-y: auto;
+            background: rgba(15, 15, 15, 0.7);
+        }
+
+        .file-item {
+            display: inline-block;
+            width: 120px;
+            padding: 20px;
+            margin: 15px;
+            text-align: center;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            cursor: pointer;
+            vertical-align: top;
+            transition: all 0.3s;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .file-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .file-icon {
+            font-size: 2.5rem;
+            margin-bottom: 15px;
+            color: #4ecdc4;
+        }
+
+        /* Калькулятор */
+        .calculator {
+            padding: 30px;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        #calcDisplay {
+            width: 100%;
+            height: 80px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            color: white;
+            font-size: 2.5rem;
+            text-align: right;
+            padding: 0 25px;
+            margin-bottom: 25px;
+            font-family: 'Courier New', monospace;
+            overflow: hidden;
+        }
+
+        .calc-buttons {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            flex: 1;
+        }
+
+        .calc-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .calc-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: scale(0.98);
+        }
+
+        .calc-btn.operation {
+            background: linear-gradient(135deg, #ff6b6b, #ff8e53);
+        }
+
+        .calc-btn.equals {
+            background: linear-gradient(135deg, #4ecdc4, #45b7d1);
+        }
+
+        /* AI Помощник */
+        .assistant-chat {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            padding: 25px;
+        }
+
+        #assistantHeader {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .assistant-avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #ff6b6b, #4ecdc4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            color: white;
+        }
+
+        #chatMessages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 15px;
+            margin-bottom: 20px;
+        }
+
+        .message {
+            margin-bottom: 15px;
+            padding: 15px;
+            border-radius: 15px;
+            max-width: 80%;
+        }
+
+        .message.user {
+            background: rgba(78, 205, 196, 0.2);
+            border: 1px solid rgba(78, 205, 196, 0.3);
+            margin-left: auto;
+        }
+
+        .message.assistant {
+            background: rgba(255, 107, 107, 0.2);
+            border: 1px solid rgba(255, 107, 107, 0.3);
+        }
+
+        .chat-input-area {
+            display: flex;
+            gap: 15px;
+        }
+
+        #chatInput {
+            flex: 1;
+            padding: 15px 25px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 25px;
+            background: rgba(0, 0, 0, 0.3);
+            color: white;
+            font-size: 1rem;
+        }
+
+        #sendMessage {
+            padding: 15px 30px;
+            background: linear-gradient(135deg, #ff6b6b, #4ecdc4);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: transform 0.2s;
+        }
+
+        #sendMessage:hover {
+            transform: scale(1.05);
+        }
+
+        /* Уведомления */
+        .notification-toast {
+            position: fixed;
+            bottom: 70px;
+            right: 25px;
+            background: rgba(20, 20, 20, 0.95);
+            color: white;
+            padding: 20px 30px;
+            border-radius: 15px;
+            z-index: 1000;
+            display: none;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
+            max-width: 350px;
+            backdrop-filter: blur(20px);
+        }
+
+        /* Темная тема для браузера */
+        .dark-mode {
+            filter: invert(1) hue-rotate(180deg);
+        }
+
+        /* Стили для обоев в файловом менеджере */
+        .wallpaper-item {
+            position: relative;
+            overflow: hidden;
+            border: 3px solid transparent;
+            transition: border-color 0.3s;
+        }
+
+        .wallpaper-item.current {
+            border-color: #4ecdc4;
+            box-shadow: 0 0 20px rgba(78, 205, 196, 0.5);
+        }
+
+        .wallpaper-preview {
+            width: 100%;
+            height: 80px;
+            object-fit: cover;
+            border-radius: 10px;
+        }
+
+        .wallpaper-name {
+            margin-top: 5px;
+            font-size: 0.8rem;
+            color: white;
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- ЭКРАН ЗАГРУЗКИ -->
+    <div id="bootScreen">
+        <div class="boot-logo">MAX</div>
+        <div class="boot-text">Загрузка операционной системы...</div>
+        <div class="boot-progress">
+            <div class="boot-progress-bar" id="bootProgress"></div>
+        </div>
+        <div class="boot-text" id="bootStatus">Инициализация ядра...</div>
+    </div>
+
+    <!-- ЭКРАН ВХОДА -->
+    <div id="loginScreen">
+        <div class="login-container">
+            <div class="login-title">MAX OS</div>
+            <div class="login-subtitle">Версия 0.01.0 beta</div>
+            <input type="password" id="passwordInput" class="login-input" placeholder="Введите пароль">
+            <button id="loginButton" class="login-button">Войти</button>
+            <div id="createPassword" class="login-create">Создать новый пароль</div>
+        </div>
+    </div>
+
+    <!-- РАБОЧИЙ СТОЛ -->
+    <div id="desktop">
+        <div class="desktop-overlay"></div>
+        
+        <!-- Значки рабочего стола -->
+        <div class="desktop-icons">
+            <div class="desktop-icon" onclick="openApp('shooter')">
+                <i class="fas fa-crosshairs" style="color: #ff6b6b;"></i>
+                <div class="desktop-icon-text">Shooter</div>
+            </div>
+            <div class="desktop-icon" onclick="openApp('browser')">
+                <i class="fas fa-globe"></i>
+                <div class="desktop-icon-text">Браузер</div>
+            </div>
+            <div class="desktop-icon" onclick="openApp('files')">
+                <i class="fas fa-folder"></i>
+                <div class="desktop-icon-text">Файлы</div>
+            </div>
+            <div class="desktop-icon" onclick="openApp('calculator')">
+                <i class="fas fa-calculator"></i>
+                <div class="desktop-icon-text">Калькулятор</div>
+            </div>
+            <div class="desktop-icon" onclick="openApp('assistant')">
+                <i class="fas fa-robot"></i>
+                <div class="desktop-icon-text">MAX Помощник</div>
+            </div>
+            <div class="desktop-icon" onclick="createFolder()">
+                <i class="fas fa-plus-circle"></i>
+                <div class="desktop-icon-text">Новая папка</div>
+            </div>
+            <div class="desktop-icon" onclick="openWallpapersFolder()">
+                <i class="fas fa-image"></i>
+                <div class="desktop-icon-text">Обои</div>
+            </div>
+        </div>
+
+        <!-- Панель задач -->
+        <div id="taskbar">
+            <button id="showPanel" onclick="togglePanel()">
+                <i class="fas fa-chevron-down"></i>
+            </button>
+            <div id="time">--:--</div>
+        </div>
+    </div>
+
+    <!-- ШТОРКА УВЕДОМЛЕНИЙ -->
+    <div id="notificationPanel">
+        <div class="panel-header">
+            <div class="panel-title">Шторка MAX</div>
+            <button class="panel-close" onclick="togglePanel()">×</button>
+        </div>
+        
+        <!-- Быстрые настройки -->
+        <div class="quick-settings">
+            <div class="settings-title">
+                <i class="fas fa-sliders-h"></i> Быстрые настройки
+            </div>
+            
+            <div class="settings-grid">
+                <div class="setting-item active" onclick="changeTheme('dark')">
+                    <i class="fas fa-moon"></i>
+                    <div>Тёмная</div>
+                </div>
+                <div class="setting-item" onclick="changeTheme('light')">
+                    <i class="fas fa-sun"></i>
+                    <div>Светлая</div>
+                </div>
+                <div class="setting-item" onclick="changeTheme('blue')">
+                    <i class="fas fa-palette"></i>
+                    <div>Синяя</div>
+                </div>
+                <div class="setting-item" onclick="toggleWiFi()">
+                    <i class="fas fa-wifi" id="wifiIcon" style="color: #4ecdc4;"></i>
+                    <div>Wi-Fi</div>
+                </div>
+                <div class="setting-item" onclick="toggleBluetooth()">
+                    <i class="fas fa-bluetooth" id="bluetoothIcon"></i>
+                    <div>Bluetooth</div>
+                </div>
+                <div class="setting-item" onclick="toggleAirplaneMode()">
+                    <i class="fas fa-plane" id="airplaneIcon"></i>
+                    <div>Самолёт</div>
+                </div>
+            </div>
+            
+            <div class="slider-container">
+                <div class="slider-label">
+                    <span><i class="fas fa-sun"></i> Яркость</span>
+                    <span id="brightnessValue">100%</span>
+                </div>
+                <input type="range" min="20" max="100" value="100" class="slider" id="brightnessSlider">
+            </div>
+            
+            <div class="slider-container">
+                <div class="slider-label">
+                    <span><i class="fas fa-volume-up"></i> Громкость</span>
+                    <span id="volumeValue">75%</span>
+                </div>
+                <input type="range" min="0" max="100" value="75" class="slider" id="volumeSlider">
+            </div>
+        </div>
+        
+        <!-- Уведомления -->
+        <div class="notifications-section">
+            <div class="notifications-header">
+                <div class="settings-title">
+                    <i class="fas fa-bell"></i> Уведомления
+                </div>
+                <button id="clearNotifications" onclick="clearAllNotifications()">
+                    Очистить все
+                </button>
+            </div>
+            <div id="notificationsList">
+                <div class="empty-notifications">Нет новых уведомлений</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ОКНО ИГРЫ SHOOTER -->
+    <div id="shooterWindow" class="window" style="width: 1000px; height: 650px;">
+        <div class="window-header">
+            <div class="window-title">🔫 SHOOTER - Тактический шутер</div>
+            <div class="window-controls">
+                <div class="window-control minimize" onclick="minimizeWindow('shooter')"></div>
+                <div class="window-control maximize" onclick="maximizeWindow('shooter')"></div>
+                <div class="window-control close" onclick="closeWindow('shooter')"></div>
+            </div>
+        </div>
+        <div class="window-content">
+            <div class="game-container" id="gameContainer">
+                <canvas id="gameCanvas"></canvas>
+                
+                <div class="game-hud">
+                    <div style="margin-bottom: 15px; font-size: 1.5rem;">
+                        <i class="fas fa-heart" style="color: #ff6b6b;"></i> 
+                        <span id="playerHealth">100</span> HP
+                    </div>
+                    <div style="font-size: 1.5rem;">
+                        <i class="fas fa-skull" style="color: #8ba0b5;"></i> 
+                        <span id="killCount">0</span> kills
+                    </div>
+                </div>
+                
+                <div class="game-controls">
+                    <div><i class="fas fa-arrow-left"></i> A</div>
+                    <div><i class="fas fa-arrow-right"></i> D</div>
+                    <div><i class="fas fa-mouse-pointer"></i> Мышь - цель</div>
+                    <div><i class="fas fa-bolt"></i> ЛКМ - огонь</div>
+                </div>
+                
+                <div id="gameStartScreen" class="game-start">
+                    <h2>🔫 SHOOTER</h2>
+                    <p>Уничтожьте всех врагов!<br>Враги появляются каждую секунду</p>
+                    <button onclick="startGame()">
+                        <i class="fas fa-play"></i> НАЧАТЬ ИГРУ
+                    </button>
+                </div>
+                
+                <div id="gameOverScreen" class="game-over">
+                    <h2>GAME OVER</h2>
+                    <p>Вы уничтожили <span id="finalKills">0</span> врагов</p>
+                    <button onclick="restartGame()">
+                        <i class="fas fa-redo-alt"></i> ИГРАТЬ СНОВА
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ОКНО БРАУЗЕРА -->
+    <div id="browserWindow" class="window">
+        <div class="window-header">
+            <div class="window-title">🌐 Браузер MAX</div>
+            <div class="window-controls">
+                <div class="window-control minimize" onclick="minimizeWindow('browser')"></div>
+                <div class="window-control maximize" onclick="maximizeWindow('browser')"></div>
+                <div class="window-control close" onclick="closeWindow('browser')"></div>
+            </div>
+        </div>
+        <div class="window-content">
+            <div class="browser-bar">
+                <button class="browser-button" onclick="browserBack()"><i class="fas fa-arrow-left"></i></button>
+                <input type="text" id="browserUrl" value="https://google.com" placeholder="Введите URL...">
+                <button class="browser-button" onclick="browserGo()">Перейти</button>
+                <button class="browser-button" onclick="toggleDarkMode()"><i class="fas fa-moon"></i></button>
+            </div>
+            <iframe id="browserFrame" src="https://google.com"></iframe>
+        </div>
+    </div>
+
+    <!-- ОКНО ФАЙЛОВОГО МЕНЕДЖЕРА -->
+    <div id="filesWindow" class="window">
+        <div class="window-header">
+            <div class="window-title">📁 Файловый менеджер</div>
+            <div class="window-controls">
+                <div class="window-control minimize" onclick="minimizeWindow('files')"></div>
+                <div class="window-control maximize" onclick="maximizeWindow('files')"></div>
+                <div class="window-control close" onclick="closeWindow('files')"></div>
+            </div>
+        </div>
+        <div class="window-content">
+            <div class="file-manager">
+                <div class="file-sidebar">
+                    <div class="file-actions">
+                        <button class="file-action-btn" onclick="createFolder()">
+                            <i class="fas fa-folder-plus"></i> Новая папка
+                        </button>
+                        <button class="file-action-btn" onclick="deleteSelected()">
+                            <i class="fas fa-trash"></i> Удалить
+                        </button>
+                    </div>
+                    <div style="color: #8ba0b5; margin-bottom: 15px;">📂 Папки:</div>
+                    <div id="folderList"></div>
+                </div>
+                <div class="file-content" id="fileContent"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ОКНО КАЛЬКУЛЯТОРА -->
+    <div id="calculatorWindow" class="window" style="width: 400px; height: 500px;">
+        <div class="window-header">
+            <div class="window-title">🧮 Калькулятор</div>
+            <div class="window-controls">
+                <div class="window-control minimize" onclick="minimizeWindow('calculator')"></div>
+                <div class="window-control maximize" onclick="maximizeWindow('calculator')"></div>
+                <div class="window-control close" onclick="closeWindow('calculator')"></div>
+            </div>
+        </div>
+        <div class="window-content">
+            <div class="calculator">
+                <input type="text" id="calcDisplay" readonly value="0">
+                <div class="calc-buttons">
+                    <button class="calc-btn" onclick="clearCalc()">C</button>
+                    <button class="calc-btn" onclick="backspaceCalc()">⌫</button>
+                    <button class="calc-btn" onclick="calcInput('%')">%</button>
+                    <button class="calc-btn operation" onclick="calcInput('/')">÷</button>
+                    <button class="calc-btn" onclick="calcInput('7')">7</button>
+                    <button class="calc-btn" onclick="calcInput('8')">8</button>
+                    <button class="calc-btn" onclick="calcInput('9')">9</button>
+                    <button class="calc-btn operation" onclick="calcInput('*')">×</button>
+                    <button class="calc-btn" onclick="calcInput('4')">4</button>
+                    <button class="calc-btn" onclick="calcInput('5')">5</button>
+                    <button class="calc-btn" onclick="calcInput('6')">6</button>
+                    <button class="calc-btn operation" onclick="calcInput('-')">−</button>
+                    <button class="calc-btn" onclick="calcInput('1')">1</button>
+                    <button class="calc-btn" onclick="calcInput('2')">2</button>
+                    <button class="calc-btn" onclick="calcInput('3')">3</button>
+                    <button class="calc-btn operation" onclick="calcInput('+')">+</button>
+                    <button class="calc-btn" onclick="calcInput('0')">0</button>
+                    <button class="calc-btn" onclick="calcInput('.')">.</button>
+                    <button class="calc-btn equals" onclick="calculate()">=</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ОКНО AI ПОМОЩНИКА -->
+    <div id="assistantWindow" class="window" style="width: 500px; height: 600px;">
+        <div class="window-header">
+            <div class="window-title">🤖 MAX Помощник</div>
+            <div class="window-controls">
+                <div class="window-control minimize" onclick="minimizeWindow('assistant')"></div>
+                <div class="window-control maximize" onclick="maximizeWindow('assistant')"></div>
+                <div class="window-control close" onclick="closeWindow('assistant')"></div>
+            </div>
+        </div>
+        <div class="window-content">
+            <div class="assistant-chat">
+                <div id="assistantHeader">
+                    <div class="assistant-avatar">
+                        <i class="fas fa-robot"></i>
+                    </div>
+                    <div>
+                        <div style="font-weight: bold; font-size: 1.3rem;">MAX Помощник</div>
+                        <div style="color: #8ba0b5;">Всегда готов помочь!</div>
+                    </div>
+                </div>
+                
+                <div id="chatMessages">
+                    <div class="message assistant">
+                        Привет! Я MAX Помощник. Чем могу помочь?
+                    </div>
+                </div>
+                
+                <div class="chat-input-area">
+                    <input type="text" id="chatInput" placeholder="Введите ваш вопрос...">
+                    <button id="sendMessage" onclick="sendMessage()"><i class="fas fa-paper-plane"></i></button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- УВЕДОМЛЕНИЕ -->
+    <div class="notification-toast" id="notificationToast"></div>
+
+    <script>
+        // ========== ИГРА SHOOTER ==========
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas ? canvas.getContext('2d') : null;
+        let gameRunning = false;
+        let player = { x: 400, y: 300, health: 100, kills: 0 };
+        let enemies = [];
+        let bullets = [];
+        let keys = {};
+        let mouseX = 400, mouseY = 300;
+        let enemySpawnInterval;
+        let gameLoopId;
+
+        // Инициализация игры
+        function initGame() {
+            if (!canvas) return;
+            
+            function resizeCanvas() {
+                const container = document.querySelector('.game-container');
+                if (container) {
+                    canvas.width = container.clientWidth;
+                    canvas.height = container.clientHeight;
+                    player.x = canvas.width / 2;
+                    player.y = canvas.height / 2;
+                }
+            }
+            
+            resizeCanvas();
+            window.addEventListener('resize', resizeCanvas);
+            
+            // Управление
+            window.addEventListener('keydown', (e) => {
+                keys[e.key.toLowerCase()] = true;
+                if (e.key === 'a' || e.key === 'd' || e.key === 'ф' || e.key === 'в') {
+                    e.preventDefault();
+                }
+            });
+            
+            window.addEventListener('keyup', (e) => {
+                keys[e.key.toLowerCase()] = false;
+            });
+            
+            // Мышь
+            canvas.addEventListener('mousemove', (e) => {
+                const rect = canvas.getBoundingClientRect();
+                const scaleX = canvas.width / rect.width;
+                const scaleY = canvas.height / rect.height;
+                mouseX = (e.clientX - rect.left) * scaleX;
+                mouseY = (e.clientY - rect.top) * scaleY;
+            });
+            
+            canvas.addEventListener('click', () => {
+                if (gameRunning && player.health > 0) {
+                    shoot();
+                }
+            });
+        }
+
+        // Стрельба
+        function shoot() {
+            if (!gameRunning || player.health <= 0) return;
+            
+            const angle = Math.atan2(mouseY - player.y, mouseX - player.x);
+            bullets.push({
+                x: player.x,
+                y: player.y,
+                vx: Math.cos(angle) * 12,
+                vy: Math.sin(angle) * 12,
+                life: 60
+            });
+        }
+
+        // Спавн врага
+        function spawnEnemy() {
+            if (!gameRunning || !canvas) return;
+            
+            const side = Math.floor(Math.random() * 4);
+            let x, y;
+            
+            switch(side) {
+                case 0: x = Math.random() * canvas.width; y = -30; break;
+                case 1: x = canvas.width + 30; y = Math.random() * canvas.height; break;
+                case 2: x = Math.random() * canvas.width; y = canvas.height + 30; break;
+                case 3: x = -30; y = Math.random() * canvas.height; break;
+            }
+            
+            enemies.push({
+                x, y,
+                health: 30 + (player.kills * 2),
+                maxHealth: 30 + (player.kills * 2),
+                speed: 1.5 + (player.kills * 0.1),
+                size: 18
+            });
+        }
+
+        // Обновление игры
+        function update() {
+            if (!gameRunning || !canvas) return;
+            
+            // Движение игрока
+            if (keys['a'] || keys['ф']) player.x -= 6;
+            if (keys['d'] || keys['в']) player.x += 6;
+            player.x = Math.max(25, Math.min(canvas.width - 25, player.x));
+            player.y = Math.max(25, Math.min(canvas.height - 25, player.y));
+            
+            // Пули
+            for (let i = bullets.length - 1; i >= 0; i--) {
+                const b = bullets[i];
+                b.x += b.vx;
+                b.y += b.vy;
+                b.life--;
+                
+                if (b.x < 0 || b.x > canvas.width || b.y < 0 || b.y > canvas.height || b.life <= 0) {
+                    bullets.splice(i, 1);
+                    continue;
+                }
+                
+                // Проверка попаданий
+                for (let j = enemies.length - 1; j >= 0; j--) {
+                    const e = enemies[j];
+                    const dx = b.x - e.x;
+                    const dy = b.y - e.y;
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+                    
+                    if (dist < e.size + 3) {
+                        bullets.splice(i, 1);
+                        e.health -= 15;
+                        
+                        if (e.health <= 0) {
+                            enemies.splice(j, 1);
+                            player.kills++;
+                            document.getElementById('killCount').textContent = player.kills;
+                            showNotification('Shooter', 'Враг уничтожен! +15 очков');
+                        }
+                        break;
+                    }
+                }
+            }
+            
+            // Движение врагов
+            for (let i = enemies.length - 1; i >= 0; i--) {
+                const e = enemies[i];
+                const dx = player.x - e.x;
+                const dy = player.y - e.y;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+                
+                if (dist > 0) {
+                    e.x += (dx / dist) * e.speed;
+                    e.y += (dy / dist) * e.speed;
+                }
+                
+                // Столкновение с игроком
+                if (dist < e.size + 20) {
+                    player.health -= 0.8;
+                    document.getElementById('playerHealth').textContent = Math.max(0, Math.floor(player.health));
+                    
+                    if (player.health <= 0) {
+                        player.health = 0;
+                        gameOver();
+                    }
+                }
+            }
+            
+            // Увеличение сложности
+            if (player.kills > 0 && player.kills % 5 === 0 && enemies.length < 10 + player.kills) {
+                spawnEnemy();
+            }
+        }
+
+        // Отрисовка
+        function draw() {
+            if (!ctx || !canvas) return;
+            
+            // Фон
+            ctx.fillStyle = '#0a0f1f';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Сетка
+            ctx.strokeStyle = 'rgba(78, 205, 196, 0.1)';
+            ctx.lineWidth = 1;
+            for (let i = 0; i < canvas.width; i += 50) {
+                ctx.beginPath();
+                ctx.moveTo(i, 0);
+                ctx.lineTo(i, canvas.height);
+                ctx.stroke();
+            }
+            for (let i = 0; i < canvas.height; i += 50) {
+                ctx.beginPath();
+                ctx.moveTo(0, i);
+                ctx.lineTo(canvas.width, i);
+                ctx.stroke();
+            }
+            
+            // Враги
+            enemies.forEach(e => {
+                // Тень
+                ctx.shadowColor = '#ff6b6b';
+                ctx.shadowBlur = 15;
+                
+                // Тело врага
+                ctx.fillStyle = '#ff6b6b';
+                ctx.beginPath();
+                ctx.arc(e.x, e.y, e.size, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Глаза врага
+                ctx.shadowBlur = 5;
+                ctx.fillStyle = 'white';
+                ctx.beginPath();
+                ctx.arc(e.x - 5, e.y - 4, 3, 0, Math.PI * 2);
+                ctx.arc(e.x + 5, e.y - 4, 3, 0, Math.PI * 2);
+                ctx.fill();
+                
+                ctx.fillStyle = '#2c3e50';
+                ctx.beginPath();
+                ctx.arc(e.x - 6, e.y - 5, 1.5, 0, Math.PI * 2);
+                ctx.arc(e.x + 4, e.y - 5, 1.5, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Полоска здоровья
+                ctx.shadowBlur = 0;
+                ctx.fillStyle = 'rgba(0,0,0,0.8)';
+                ctx.fillRect(e.x - 25, e.y - 30, 50, 6);
+                ctx.fillStyle = '#4ecdc4';
+                ctx.fillRect(e.x - 25, e.y - 30, 50 * (e.health / e.maxHealth), 6);
+            });
+            
+            // Пули
+            ctx.shadowColor = '#4ecdc4';
+            ctx.shadowBlur = 8;
+            bullets.forEach(b => {
+                ctx.fillStyle = '#4ecdc4';
+                ctx.beginPath();
+                ctx.arc(b.x, b.y, 4, 0, Math.PI * 2);
+                ctx.fill();
+            });
+            
+            // Игрок
+            ctx.shadowColor = '#4ecdc4';
+            ctx.shadowBlur = 20;
+            
+            // Тело игрока
+            ctx.fillStyle = '#4ecdc4';
+            ctx.beginPath();
+            ctx.arc(player.x, player.y, 18, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Глаза игрока
+            ctx.shadowBlur = 5;
+            ctx.fillStyle = 'white';
+            ctx.beginPath();
+            ctx.arc(player.x - 6, player.y - 5, 4, 0, Math.PI * 2);
+            ctx.arc(player.x + 6, player.y - 5, 4, 0, Math.PI * 2);
+            ctx.fill();
+            
+            ctx.fillStyle = '#2c3e50';
+            ctx.beginPath();
+            ctx.arc(player.x - 7, player.y - 6, 2, 0, Math.PI * 2);
+            ctx.arc(player.x + 5, player.y - 6, 2, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Оружие
+            ctx.shadowBlur = 10;
+            ctx.fillStyle = '#95a5a6';
+            ctx.beginPath();
+            ctx.moveTo(player.x, player.y - 3);
+            ctx.lineTo(player.x + 25, player.y - 8);
+            ctx.lineTo(player.x + 25, player.y + 2);
+            ctx.closePath();
+            ctx.fill();
+            
+            // Прицел
+            ctx.shadowBlur = 10;
+            ctx.strokeStyle = 'white';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(mouseX - 15, mouseY);
+            ctx.lineTo(mouseX - 5, mouseY);
+            ctx.moveTo(mouseX + 5, mouseY);
+            ctx.lineTo(mouseX + 15, mouseY);
+            ctx.moveTo(mouseX, mouseY - 15);
+            ctx.lineTo(mouseX, mouseY - 5);
+            ctx.moveTo(mouseX, mouseY + 5);
+            ctx.lineTo(mouseX, mouseY + 15);
+            ctx.stroke();
+            
+            ctx.shadowBlur = 0;
+        }
+
+        // Game loop
+        function gameLoop() {
+            if (!gameRunning) return;
+            update();
+            draw();
+            gameLoopId = requestAnimationFrame(gameLoop);
+        }
+
+        // Start game
+        function startGame() {
+            gameRunning = true;
+            player = {
+                x: canvas.width / 2,
+                y: canvas.height / 2,
+                health: 100,
+                kills: 0
+            };
+            enemies = [];
+            bullets = [];
+            
+            document.getElementById('gameStartScreen').style.display = 'none';
+            document.getElementById('gameOverScreen').style.display = 'none';
+            document.getElementById('playerHealth').textContent = '100';
+            document.getElementById('killCount').textContent = '0';
+            
+            if (enemySpawnInterval) clearInterval(enemySpawnInterval);
+            enemySpawnInterval = setInterval(() => {
+                if (gameRunning) spawnEnemy();
+            }, 1000);
+            
+            gameLoop();
+            showNotification('Shooter', 'Игра началась! Уничтожай врагов!');
+        }
+
+        // Game over
+        function gameOver() {
+            gameRunning = false;
+            if (enemySpawnInterval) clearInterval(enemySpawnInterval);
+            if (gameLoopId) cancelAnimationFrame(gameLoopId);
+            
+            document.getElementById('finalKills').textContent = player.kills;
+            document.getElementById('gameOverScreen').style.display = 'block';
+            showNotification('Shooter', 'Игра окончена! Убито: ' + player.kills);
+        }
+
+        // Restart game
+        function restartGame() {
+            document.getElementById('gameOverScreen').style.display = 'none';
+            startGame();
+        }
+
+        // ========== ХРАНИЛИЩЕ ДАННЫХ ==========
+        const MAX_STORAGE = {
+            password: null,
+            folders: ['Документы', 'Изображения', 'Загрузки', 'Музыка', 'Видео', 'Обои'],
+            files: [
+                {name: 'README.txt', type: 'file', folder: 'Документы'},
+                {name: 'Привет.txt', type: 'file', folder: 'Документы'},
+                {name: 'photo1.png', type: 'wallpaper', folder: 'Обои'},
+                {name: 'photo2.png', type: 'wallpaper', folder: 'Обои'},
+                {name: 'photo3.png', type: 'wallpaper', folder: 'Обои'},
+                {name: 'photo4.png', type: 'wallpaper', folder: 'Обои'},
+                {name: 'photo5.png', type: 'wallpaper', folder: 'Обои'}
+            ],
+            wallpaper: 'photo1.png',
+            theme: 'dark',
+            brightness: 100,
+            volume: 75,
+            wifiEnabled: true,
+            bluetoothEnabled: false,
+            airplaneMode: false,
+            notifications: [],
+            chatHistory: []
+        };
+
+        // ========== ЗАГРУЗКА СИСТЕМЫ ==========
+        function bootSystem() {
+            const bootMessages = [
+                'Инициализация ядра...',
+                'Загрузка драйверов...',
+                'Подготовка файловой системы...',
+                'Запуск служб...',
+                'Загрузка интерфейса...',
+                'MAX OS готова к работе!'
+            ];
+            
+            let bootProgress = 0;
+            const progressBar = document.getElementById('bootProgress');
+            const status = document.getElementById('bootStatus');
+            
+            const bootInterval = setInterval(() => {
+                bootProgress += Math.floor(Math.random() * 15) + 10;
+                if (bootProgress > 100) bootProgress = 100;
+                
+                progressBar.style.width = bootProgress + '%';
+                
+                if (bootProgress <= 100) {
+                    const index = Math.floor(bootProgress / (100 / bootMessages.length));
+                    if (index < bootMessages.length) {
+                        status.textContent = bootMessages[index];
+                    }
+                }
+                
+                if (bootProgress >= 100) {
+                    clearInterval(bootInterval);
+                    setTimeout(() => {
+                        document.getElementById('bootScreen').style.opacity = '0';
+                        setTimeout(() => {
+                            document.getElementById('bootScreen').style.display = 'none';
+                            showLoginScreen();
+                        }, 500);
+                    }, 500);
+                }
+            }, 200);
+        }
+
+        // ========== ЭКРАН ВХОДА ==========
+        function showLoginScreen() {
+            document.getElementById('loginScreen').style.display = 'flex';
+            
+            const savedPassword = localStorage.getItem('max_password');
+            if (savedPassword) {
+                MAX_STORAGE.password = savedPassword;
+                document.getElementById('createPassword').textContent = 'Изменить пароль';
+            }
+            
+            document.getElementById('loginButton').onclick = login;
+            document.getElementById('createPassword').onclick = createNewPassword;
+            
+            document.getElementById('passwordInput').onkeypress = (e) => {
+                if (e.key === 'Enter') login();
+            };
+        }
+
+        function login() {
+            const input = document.getElementById('passwordInput');
+            const savedPassword = localStorage.getItem('max_password');
+            
+            if (!savedPassword) {
+                showNotification('Ошибка', 'Сначала создайте пароль!');
+                return;
+            }
+            
+            if (input.value === savedPassword) {
+                document.getElementById('loginScreen').style.display = 'none';
+                startDesktop();
+            } else {
+                showNotification('Ошибка', 'Неверный пароль!');
+                input.value = '';
+            }
+        }
+
+        function createNewPassword() {
+            const input = document.getElementById('passwordInput');
+            if (input.value.length < 4) {
+                showNotification('Ошибка', 'Пароль должен быть не менее 4 символов!');
+                return;
+            }
+            
+            localStorage.setItem('max_password', input.value);
+            MAX_STORAGE.password = input.value;
+            showNotification('Успех', 'Пароль успешно установлен!');
+            input.value = '';
+        }
+
+        // ========== РАБОЧИЙ СТОЛ ==========
+        function startDesktop() {
+            document.getElementById('desktop').style.display = 'block';
+            updateTime();
+            setInterval(updateTime, 1000);
+            loadFileManager();
+            initGame();
+            showNotification('MAX OS', 'Добро пожаловать в MAX OS 0.01.0 beta!');
+        }
+
+        function updateTime() {
+            const now = new Date();
+            const timeStr = now.toLocaleTimeString('ru-RU', {hour: '2-digit', minute:'2-digit'});
+            document.getElementById('time').textContent = timeStr;
+        }
+
+        // ========== УВЕДОМЛЕНИЯ ==========
+        function showNotification(title, text) {
+            const notification = {
+                id: Date.now(),
+                title: title,
+                text: text,
+                time: new Date().toLocaleTimeString('ru-RU', {hour: '2-digit', minute:'2-digit'})
+            };
+            
+            MAX_STORAGE.notifications.unshift(notification);
+            if (MAX_STORAGE.notifications.length > 10) MAX_STORAGE.notifications.pop();
+            
+            updateNotificationsList();
+            
+            const toast = document.getElementById('notificationToast');
+            toast.innerHTML = `<strong>${title}:</strong> ${text}`;
+            toast.style.display = 'block';
+            setTimeout(() => { toast.style.display = 'none'; }, 3000);
+        }
+
+        function updateNotificationsList() {
+            const list = document.getElementById('notificationsList');
+            if (!list) return;
+            
+            if (MAX_STORAGE.notifications.length === 0) {
+                list.innerHTML = '<div class="empty-notifications">Нет новых уведомлений</div>';
+                return;
+            }
+            
+            list.innerHTML = MAX_STORAGE.notifications.map(n => `
+                <div class="notification-item">
+                    <div class="notification-title">${n.title}</div>
+                    <div class="notification-text">${n.text}</div>
+                    <div style="font-size: 0.8rem; color: #8ba0b5; margin-top: 5px;">${n.time}</div>
+                </div>
+            `).join('');
+        }
+
+        function clearAllNotifications() {
+            MAX_STORAGE.notifications = [];
+            updateNotificationsList();
+            showNotification('Уведомления', 'Все уведомления очищены');
+        }
+
+        // ========== ШТОРКА ==========
+        function togglePanel() {
+            const panel = document.getElementById('notificationPanel');
+            const button = document.getElementById('showPanel');
+            
+            if (panel.style.top === '15px') {
+                panel.style.top = '-400px';
+                button.innerHTML = '<i class="fas fa-chevron-down"></i>';
+            } else {
+                panel.style.top = '15px';
+                button.innerHTML = '<i class="fas fa-chevron-up"></i>';
+                updateNotificationsList();
+            }
+        }
+
+        // ========== ОКНА ПРИЛОЖЕНИЙ ==========
+        function openApp(appName) {
+            const windowId = appName + 'Window';
+            const win = document.getElementById(windowId);
+            
+            if (win) {
+                win.style.display = 'block';
+                bringToFront(windowId);
+                
+                if (appName === 'assistant') {
+                    loadChatHistory();
+                }
+                
+                if (appName === 'shooter') {
+                    setTimeout(() => {
+                        if (!gameRunning) {
+                            document.getElementById('gameStartScreen').style.display = 'block';
+                        }
+                    }, 100);
+                }
+            }
+        }
+
+        function closeWindow(appName) {
+            const windowId = appName + 'Window';
+            const win = document.getElementById(windowId);
+            if (win) win.style.display = 'none';
+        }
+
+        function minimizeWindow(appName) {
+            const win = document.getElementById(appName + 'Window');
+            win.style.transform = 'scale(0.01)';
+            win.style.opacity = '0';
+            setTimeout(() => {
+                win.style.display = 'none';
+                win.style.transform = '';
+                win.style.opacity = '';
+            }, 300);
+        }
+
+        function maximizeWindow(appName) {
+            const win = document.getElementById(appName + 'Window');
+            if (win.style.width === '100%') {
+                win.style.width = appName === 'shooter' ? '1000px' : 
+                                 appName === 'calculator' ? '400px' : 
+                                 appName === 'assistant' ? '500px' : '900px';
+                win.style.height = appName === 'shooter' ? '650px' : 
+                                  appName === 'calculator' ? '500px' : 
+                                  appName === 'assistant' ? '600px' : '600px';
+                win.style.top = '50px';
+                win.style.left = '50px';
+            } else {
+                win.style.width = '100%';
+                win.style.height = 'calc(100% - 50px)';
+                win.style.top = '0';
+                win.style.left = '0';
+            }
+        }
+
+        function bringToFront(elementId) {
+            document.querySelectorAll('.window').forEach(win => {
+                win.style.zIndex = '100';
+            });
+            document.getElementById(elementId).style.zIndex = '999';
+        }
+
+        // ========== ДРАГ-ЭНД-ДРОП ОКОН ==========
+        let draggedWindow = null;
+        let offsetX = 0, offsetY = 0;
+
+        document.addEventListener('mousedown', (e) => {
+            if (e.target.closest('.window-header')) {
+                draggedWindow = e.target.closest('.window');
+                offsetX = e.clientX - draggedWindow.offsetLeft;
+                offsetY = e.clientY - draggedWindow.offsetTop;
+                bringToFront(draggedWindow.id);
+            }
+        });
+
+        document.addEventListener('mousemove', (e) => {
+            if (draggedWindow) {
+                draggedWindow.style.left = (e.clientX - offsetX) + 'px';
+                draggedWindow.style.top = (e.clientY - offsetY) + 'px';
+            }
+        });
+
+        document.addEventListener('mouseup', () => {
+            draggedWindow = null;
+        });
+
+        // ========== ФАЙЛОВЫЙ МЕНЕДЖЕР ==========
+        function loadFileManager() {
+            const folderList = document.getElementById('folderList');
+            if (!folderList) return;
+            
+            folderList.innerHTML = '';
+            
+            MAX_STORAGE.folders.forEach(folder => {
+                const div = document.createElement('div');
+                div.className = 'file-item';
+                div.innerHTML = `<i class="fas fa-folder file-icon"></i><br><span style="color: white;">${folder}</span>`;
+                div.onclick = () => openFolder(folder);
+                folderList.appendChild(div);
+            });
+            
+            openFolder('Документы');
+        }
+
+        function openFolder(folderName) {
+            const content = document.getElementById('fileContent');
+            if (!content) return;
+            
+            content.innerHTML = `<h3 style="color: white; margin-bottom: 20px;">${folderName}</h3>`;
+            
+            if (folderName === 'Обои') {
+                openWallpapersFolderContent();
+                return;
+            }
+            
+            MAX_STORAGE.folders.forEach(folder => {
+                if (folder !== folderName) {
+                    const div = document.createElement('div');
+                    div.className = 'file-item';
+                    div.innerHTML = `<i class="fas fa-folder file-icon"></i><br><span style="color: white;">${folder}</span>`;
+                    div.onclick = () => openFolder(folder);
+                    content.appendChild(div);
+                }
+            });
+            
+            MAX_STORAGE.files.forEach(file => {
+                if (file.folder === folderName) {
+                    const icon = file.type === 'image' ? 'fa-image' : 
+                                file.type === 'music' ? 'fa-music' : 
+                                file.type === 'video' ? 'fa-video' : 
+                                file.type === 'wallpaper' ? 'fa-image' : 'fa-file';
+                    
+                    const div = document.createElement('div');
+                    div.className = 'file-item';
+                    div.innerHTML = `<i class="fas ${icon} file-icon" style="color: #4ecdc4;"></i><br><span style="color: white;">${file.name}</span>`;
+                    div.onclick = () => showNotification('Файл', `Открыт файл: ${file.name}`);
+                    content.appendChild(div);
+                }
+            });
+        }
+
+        function openWallpapersFolderContent() {
+            const content = document.getElementById('fileContent');
+            const wallpapers = [
+                {name: 'photo1.png', color: 'linear-gradient(135deg, #1a1a2e, #16213e)'},
+                {name: 'photo2.png', color: 'linear-gradient(135deg, #0f0c29, #302b63, #24243e)'},
+                {name: 'photo3.png', color: 'linear-gradient(135deg, #000428, #004e92)'},
+                {name: 'photo4.png', color: 'linear-gradient(135deg, #232526, #414345)'},
+                {name: 'photo5.png', color: 'linear-gradient(135deg, #1e3c72, #2a5298)'}
+            ];
+            
+            wallpapers.forEach(wallpaper => {
+                const div = document.createElement('div');
+                div.className = 'file-item wallpaper-item';
+                if (wallpaper.name === MAX_STORAGE.wallpaper) {
+                    div.classList.add('current');
+                }
+                
+                div.innerHTML = `
+                    <div class="wallpaper-preview" style="background: ${wallpaper.color};"></div>
+                    <div class="wallpaper-name">${wallpaper.name}</div>
+                `;
+                
+                div.onclick = () => setWallpaper(wallpaper.name);
+                content.appendChild(div);
+            });
+        }
+
+        function openWallpapersFolder() {
+            openApp('files');
+            setTimeout(() => openFolder('Обои'), 100);
+        }
+
+        function setWallpaper(name) {
+            MAX_STORAGE.wallpaper = name;
+            const wallpapers = {
+                'photo1.png': 'linear-gradient(135deg, #1a1a2e, #16213e)',
+                'photo2.png': 'linear-gradient(135deg, #0f0c29, #302b63, #24243e)',
+                'photo3.png': 'linear-gradient(135deg, #000428, #004e92)',
+                'photo4.png': 'linear-gradient(135deg, #232526, #414345)',
+                'photo5.png': 'linear-gradient(135deg, #1e3c72, #2a5298)'
+            };
+            
+            document.getElementById('desktop').style.backgroundImage = wallpapers[name];
+            localStorage.setItem('max_wallpaper', name);
+            showNotification('Обои', `Установлены обои: ${name}`);
+            
+            // Обновляем выделение в папке обоев
+            if (document.getElementById('filesWindow').style.display === 'block') {
+                openFolder('Обои');
+            }
+        }
+
+        function createFolder() {
+            const name = prompt('Введите имя новой папки:');
+            if (name && name.trim()) {
+                if (!MAX_STORAGE.folders.includes(name)) {
+                    MAX_STORAGE.folders.push(name);
+                    loadFileManager();
+                    showNotification('Файлы', `Создана папка: ${name}`);
+                } else {
+                    showNotification('Ошибка', 'Папка уже существует!');
+                }
+            }
+        }
+
+        function deleteSelected() {
+            const name = prompt('Введите имя папки для удаления:');
+            if (name && MAX_STORAGE.folders.includes(name) && name !== 'Обои') {
+                MAX_STORAGE.folders = MAX_STORAGE.folders.filter(f => f !== name);
+                MAX_STORAGE.files = MAX_STORAGE.files.filter(f => f.folder !== name);
+                loadFileManager();
+                showNotification('Файлы', `Папка "${name}" удалена`);
+            } else if (name === 'Обои') {
+                showNotification('Ошибка', 'Системную папку нельзя удалить!');
+            } else {
+                showNotification('Ошибка', 'Папка не найдена!');
+            }
+        }
+
+        // ========== КАЛЬКУЛЯТОР ==========
+        let calcExpression = '0';
+
+        function calcInput(value) {
+            if (calcExpression === '0' && value !== '.') {
+                calcExpression = value;
+            } else {
+                calcExpression += value;
+            }
+            document.getElementById('calcDisplay').value = calcExpression;
+        }
+
+        function clearCalc() {
+            calcExpression = '0';
+            document.getElementById('calcDisplay').value = calcExpression;
+        }
+
+        function backspaceCalc() {
+            if (calcExpression.length > 1) {
+                calcExpression = calcExpression.slice(0, -1);
+            } else {
+                calcExpression = '0';
+            }
+            document.getElementById('calcDisplay').value = calcExpression;
+        }
+
+        function calculate() {
+            try {
+                let expr = calcExpression
+                    .replace(/×/g, '*')
+                    .replace(/÷/g, '/')
+                    .replace(/%/g, '/100');
+                
+                let result = eval(expr);
+                if (isNaN(result) || !isFinite(result)) throw new Error();
+                
+                result = Math.round(result * 100000000) / 100000000;
+                document.getElementById('calcDisplay').value = result;
+                calcExpression = result.toString();
+                showNotification('Калькулятор', `Результат: ${result}`);
+            } catch {
+                document.getElementById('calcDisplay').value = 'Ошибка';
+                calcExpression = '0';
+                showNotification('Калькулятор', 'Ошибка вычисления!');
+            }
+        }
+
+        // ========== БРАУЗЕР ==========
+        function browserGo() {
+            const input = document.getElementById('browserUrl');
+            let url = input.value;
+            
+            if (!url.startsWith('http')) {
+                url = 'https://' + url;
+                input.value = url;
+            }
+            
+            document.getElementById('browserFrame').src = url;
+            showNotification('Браузер', `Переход на: ${url}`);
+        }
+
+        function browserBack() {
+            const frame = document.getElementById('browserFrame');
+            try { frame.contentWindow.history.back(); } catch(e) {}
+        }
+
+        function toggleDarkMode() {
+            const frame = document.getElementById('browserFrame');
+            frame.classList.toggle('dark-mode');
+            showNotification('Браузер', 'Тёмный режим ' + 
+                (frame.classList.contains('dark-mode') ? 'включён' : 'выключен'));
+        }
+
+        document.getElementById('browserUrl').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') browserGo();
+        });
+
+        // ========== AI ПОМОЩНИК ==========
+        const assistantResponses = {
+            'привет': 'Привет! Чем могу помочь?',
+            'как дела': 'Всё отлично! Готов помочь вам!',
+            'помощь': 'Я могу: 1. Ответить на вопросы 2. Помочь с настройками 3. Рассказать о системе',
+            'система': 'MAX OS 0.01.0 beta - операционная система на веб-технологиях',
+            'создать папку': 'Откройте файловый менеджер и нажмите "Новая папка"',
+            'браузер': 'Браузер MAX поддерживает все современные сайты',
+            'калькулятор': 'Выполняет все основные математические операции',
+            'обои': 'Зайдите в папку "Обои" в файловом менеджере',
+            'игра': 'Shooter - тактический шутер. Управление: A/D движение, мышь - цель, клик - стрельба',
+            'shooter': 'Крутая игра! Управляй A/D, стреляй мышкой!',
+            'спасибо': 'Пожалуйста! Обращайтесь!'
+        };
+
+        function loadChatHistory() {
+            const chatMessages = document.getElementById('chatMessages');
+            if (!chatMessages) return;
+            
+            const savedHistory = JSON.parse(localStorage.getItem('max_chat_history') || '[]');
+            MAX_STORAGE.chatHistory = savedHistory;
+            
+            chatMessages.innerHTML = savedHistory.map(msg => 
+                `<div class="message ${msg.sender}">${msg.text}</div>`
+            ).join('');
+            
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function saveChatMessage(sender, text) {
+            MAX_STORAGE.chatHistory.push({ sender, text, timestamp: new Date().toISOString() });
+            if (MAX_STORAGE.chatHistory.length > 50) {
+                MAX_STORAGE.chatHistory = MAX_STORAGE.chatHistory.slice(-50);
+            }
+            localStorage.setItem('max_chat_history', JSON.stringify(MAX_STORAGE.chatHistory));
+        }
+
+        function sendMessage() {
+            const input = document.getElementById('chatInput');
+            const message = input.value.trim();
+            if (!message) return;
+            
+            // Сообщение пользователя
+            const userMsg = document.createElement('div');
+            userMsg.className = 'message user';
+            userMsg.textContent = message;
+            document.getElementById('chatMessages').appendChild(userMsg);
+            saveChatMessage('user', message);
+            input.value = '';
+            
+            // Ответ помощника
+            setTimeout(() => {
+                let response = 'Извините, я не понял. Попробуйте спросить по-другому.';
+                
+                const lowerMsg = message.toLowerCase();
+                for (const [key, value] of Object.entries(assistantResponses)) {
+                    if (lowerMsg.includes(key)) {
+                        response = value;
+                        break;
+                    }
+                }
+                
+                if (response.includes('не понял')) {
+                    const random = [
+                        'Я всё ещё учусь и скоро научусь отвечать на этот вопрос!',
+                        'Пока не могу ответить, но я постоянно совершенствуюсь!',
+                        'Воспользуйтесь браузером для поиска информации.',
+                        'Спросите меня о системе, игре или приложениях!'
+                    ];
+                    response = random[Math.floor(Math.random() * random.length)];
+                }
+                
+                const assistantMsg = document.createElement('div');
+                assistantMsg.className = 'message assistant';
+                assistantMsg.textContent = response;
+                document.getElementById('chatMessages').appendChild(assistantMsg);
+                saveChatMessage('assistant', response);
+                
+                const chat = document.getElementById('chatMessages');
+                chat.scrollTop = chat.scrollHeight;
+            }, 500);
+        }
+
+        document.getElementById('chatInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') sendMessage();
+        });
+
+        // ========== БЫСТРЫЕ НАСТРОЙКИ ==========
+        function changeTheme(theme) {
+            const desktop = document.getElementById('desktop');
+            desktop.className = 'theme-' + theme;
+            showNotification('Тема', `Установлена ${theme === 'dark' ? 'тёмная' : theme === 'light' ? 'светлая' : 'синяя'} тема`);
+        }
+
+        function toggleWiFi() {
+            MAX_STORAGE.wifiEnabled = !MAX_STORAGE.wifiEnabled;
+            const icon = document.getElementById('wifiIcon');
+            icon.style.color = MAX_STORAGE.wifiEnabled ? '#4ecdc4' : '#8ba0b5';
+            showNotification('Wi-Fi', MAX_STORAGE.wifiEnabled ? 'Включён' : 'Выключен');
+        }
+
+        function toggleBluetooth() {
+            MAX_STORAGE.bluetoothEnabled = !MAX_STORAGE.bluetoothEnabled;
+            const icon = document.getElementById('bluetoothIcon');
+            icon.style.color = MAX_STORAGE.bluetoothEnabled ? '#4ecdc4' : '#8ba0b5';
+            showNotification('Bluetooth', MAX_STORAGE.bluetoothEnabled ? 'Включён' : 'Выключен');
+        }
+
+        function toggleAirplaneMode() {
+            MAX_STORAGE.airplaneMode = !MAX_STORAGE.airplaneMode;
+            const icon = document.getElementById('airplaneIcon');
+            icon.style.color = MAX_STORAGE.airplaneMode ? '#4ecdc4' : '#8ba0b5';
+            showNotification('Режим полёта', MAX_STORAGE.airplaneMode ? 'Включён' : 'Выключен');
+        }
+
+        // Инициализация слайдеров
+        document.getElementById('brightnessSlider').addEventListener('input', function() {
+            document.getElementById('brightnessValue').textContent = this.value + '%';
+            document.getElementById('desktop').style.filter = `brightness(${this.value / 100})`;
+        });
+
+        document.getElementById('volumeSlider').addEventListener('input', function() {
+            document.getElementById('volumeValue').textContent = this.value + '%';
+        });
+
+        // ========== ЗАПУСК ==========
+        window.onload = bootSystem;
+    </script>
+</body>
+</html>
