@@ -551,22 +551,22 @@
             overflow: hidden;
         }
 
-        /* ===== ИГРА SHOOTER ===== */
-        #shooterWindow .window-content {
+        /* ===== ИГРА GEOMETRY DASH ===== */
+        #geometryWindow .window-content {
             background: linear-gradient(135deg, #0a0f1f 0%, #1a1f2f 100%);
             position: relative;
             overflow: hidden;
         }
 
-        .game-container {
+        .geometry-container {
             position: relative;
             width: 100%;
             height: 100%;
-            background: radial-gradient(circle at center, #1a2f3f 0%, #0a1a2a 100%);
+            background: linear-gradient(135deg, #1a2a3a 0%, #0f1a2a 100%);
             overflow: hidden;
         }
 
-        #gameCanvas {
+        #geometryCanvas {
             position: absolute;
             top: 0;
             left: 0;
@@ -575,7 +575,7 @@
             display: block;
         }
 
-        .game-hud {
+        .geometry-hud {
             position: absolute;
             top: 20px;
             left: 20px;
@@ -586,19 +586,19 @@
             background: rgba(0,0,0,0.8);
             padding: 20px 30px;
             border-radius: 15px;
-            border: 2px solid rgba(78,205,196,0.3);
+            border: 2px solid #4ecdc4;
             backdrop-filter: blur(5px);
             font-size: 1.2rem;
         }
 
-        .game-hud span {
+        .geometry-hud span {
             color: #ff6b6b;
             font-weight: bold;
             font-size: 1.8rem;
             text-shadow: 0 0 10px rgba(255,107,107,0.5);
         }
 
-        .game-controls {
+        .geometry-controls {
             position: absolute;
             bottom: 30px;
             left: 50%;
@@ -610,18 +610,18 @@
             display: flex;
             gap: 40px;
             backdrop-filter: blur(10px);
-            border: 2px solid #4ecdc4;
+            border: 2px solid #ff6b6b;
             z-index: 10;
             font-size: 1.1rem;
-            box-shadow: 0 0 30px rgba(78,205,196,0.3);
+            box-shadow: 0 0 30px rgba(255,107,107,0.3);
         }
 
-        .game-controls i {
-            color: #4ecdc4;
+        .geometry-controls i {
+            color: #ff6b6b;
             margin-right: 10px;
         }
 
-        .game-start {
+        .geometry-start {
             position: absolute;
             top: 50%;
             left: 50%;
@@ -636,7 +636,7 @@
             box-shadow: 0 0 50px rgba(78,205,196,0.5);
         }
 
-        .game-start h2 {
+        .geometry-start h2 {
             font-size: 3.5rem;
             color: #4ecdc4;
             margin-bottom: 30px;
@@ -644,13 +644,7 @@
             animation: pulse 2s infinite;
         }
 
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-            100% { transform: scale(1); }
-        }
-
-        .game-start p {
+        .geometry-start p {
             font-size: 1.3rem;
             color: #8ba0b5;
             margin-bottom: 40px;
@@ -658,7 +652,7 @@
             line-height: 1.6;
         }
 
-        .game-start button {
+        .geometry-start button {
             background: linear-gradient(135deg, #4ecdc4, #45b7d1);
             border: none;
             color: white;
@@ -669,15 +663,14 @@
             font-weight: bold;
             transition: all 0.3s;
             border: 2px solid rgba(255,255,255,0.2);
-            animation: glow 2s infinite;
         }
 
-        .game-start button:hover {
+        .geometry-start button:hover {
             transform: scale(1.1);
             box-shadow: 0 0 40px rgba(78,205,196,0.8);
         }
 
-        .game-over {
+        .geometry-gameover {
             position: absolute;
             top: 50%;
             left: 50%;
@@ -693,20 +686,20 @@
             box-shadow: 0 0 50px rgba(255,107,107,0.5);
         }
 
-        .game-over h2 {
+        .geometry-gameover h2 {
             font-size: 3.5rem;
             color: #ff6b6b;
             margin-bottom: 30px;
             text-shadow: 0 0 20px rgba(255,107,107,0.5);
         }
 
-        .game-over p {
+        .geometry-gameover p {
             font-size: 1.8rem;
             color: white;
             margin-bottom: 40px;
         }
 
-        .game-over button {
+        .geometry-gameover button {
             background: linear-gradient(135deg, #ff6b6b, #ff8e53);
             border: none;
             color: white;
@@ -718,74 +711,9 @@
             transition: all 0.3s;
         }
 
-        .game-over button:hover {
+        .geometry-gameover button:hover {
             transform: scale(1.1);
             box-shadow: 0 0 40px rgba(255,107,107,0.8);
-        }
-
-        .enemy {
-            position: absolute;
-            width: 40px;
-            height: 40px;
-            background: radial-gradient(circle at 30% 30%, #ff6b6b, #c44f4f);
-            border-radius: 50%;
-            border: 2px solid rgba(255,255,255,0.5);
-            box-shadow: 0 0 20px rgba(255,107,107,0.5);
-        }
-
-        .bullet {
-            position: absolute;
-            width: 6px;
-            height: 6px;
-            background: #4ecdc4;
-            border-radius: 50%;
-            box-shadow: 0 0 10px #4ecdc4;
-        }
-
-        .player {
-            position: absolute;
-            width: 30px;
-            height: 30px;
-            background: radial-gradient(circle at 30% 30%, #4ecdc4, #2d7a75);
-            border-radius: 50%;
-            border: 2px solid white;
-            box-shadow: 0 0 30px #4ecdc4;
-        }
-
-        .crosshair {
-            position: absolute;
-            width: 40px;
-            height: 40px;
-            border: 2px solid white;
-            border-radius: 50%;
-            transform: translate(-50%, -50%);
-            pointer-events: none;
-            z-index: 15;
-            box-shadow: 0 0 20px rgba(255,255,255,0.5);
-        }
-
-        .crosshair::before,
-        .crosshair::after {
-            content: '';
-            position: absolute;
-            background: white;
-            box-shadow: 0 0 10px white;
-        }
-
-        .crosshair::before {
-            width: 20px;
-            height: 2px;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-        }
-
-        .crosshair::after {
-            width: 2px;
-            height: 20px;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
         }
 
         /* Браузер */
@@ -1129,9 +1057,9 @@
         
         <!-- Значки рабочего стола -->
         <div class="desktop-icons">
-            <div class="desktop-icon" onclick="openApp('shooter')">
-                <i class="fas fa-crosshairs" style="color: #ff6b6b;"></i>
-                <div class="desktop-icon-text">Shooter</div>
+            <div class="desktop-icon" onclick="openApp('geometry')">
+                <i class="fas fa-cube" style="color: #4ecdc4;"></i>
+                <div class="desktop-icon-text">Geometry Dash</div>
             </div>
             <div class="desktop-icon" onclick="openApp('browser')">
                 <i class="fas fa-globe"></i>
@@ -1241,51 +1169,49 @@
         </div>
     </div>
 
-    <!-- ОКНО ИГРЫ SHOOTER -->
-    <div id="shooterWindow" class="window" style="width: 1000px; height: 650px;">
+    <!-- ОКНО ИГРЫ GEOMETRY DASH -->
+    <div id="geometryWindow" class="window" style="width: 1000px; height: 650px;">
         <div class="window-header">
-            <div class="window-title">🔫 SHOOTER - Тактический шутер</div>
+            <div class="window-title">🎮 Geometry Dash - РИТМ-ШУТЕР</div>
             <div class="window-controls">
-                <div class="window-control minimize" onclick="minimizeWindow('shooter')"></div>
-                <div class="window-control maximize" onclick="maximizeWindow('shooter')"></div>
-                <div class="window-control close" onclick="closeWindow('shooter')"></div>
+                <div class="window-control minimize" onclick="minimizeWindow('geometry')"></div>
+                <div class="window-control maximize" onclick="maximizeWindow('geometry')"></div>
+                <div class="window-control close" onclick="closeWindow('geometry')"></div>
             </div>
         </div>
         <div class="window-content">
-            <div class="game-container" id="gameContainer">
-                <canvas id="gameCanvas"></canvas>
+            <div class="geometry-container" id="geometryContainer">
+                <canvas id="geometryCanvas"></canvas>
                 
-                <div class="game-hud">
+                <div class="geometry-hud">
                     <div style="margin-bottom: 15px; font-size: 1.5rem;">
-                        <i class="fas fa-heart" style="color: #ff6b6b;"></i> 
-                        <span id="playerHealth">100</span> HP
+                        <i class="fas fa-star" style="color: #ffd700;"></i> 
+                        СЧЁТ: <span id="score">0</span>
                     </div>
                     <div style="font-size: 1.5rem;">
-                        <i class="fas fa-skull" style="color: #8ba0b5;"></i> 
-                        <span id="killCount">0</span> kills
+                        <i class="fas fa-tachometer-alt" style="color: #4ecdc4;"></i> 
+                        СКОРОСТЬ: <span id="speedLevel">1</span>x
                     </div>
                 </div>
                 
-                <div class="game-controls">
-                    <div><i class="fas fa-arrow-left"></i> A</div>
-                    <div><i class="fas fa-arrow-right"></i> D</div>
-                    <div><i class="fas fa-mouse-pointer"></i> Мышь - цель</div>
-                    <div><i class="fas fa-bolt"></i> ЛКМ - огонь</div>
+                <div class="geometry-controls">
+                    <div><i class="fas fa-space-shuttle"></i> ПРОБЕЛ / КЛИК - ПРЫЖОК</div>
+                    <div><i class="fas fa-undo-alt"></i> R - РЕСТАРТ</div>
                 </div>
                 
-                <div id="gameStartScreen" class="game-start">
-                    <h2>🔫 SHOOTER</h2>
-                    <p>Уничтожьте всех врагов!<br>Враги появляются каждую секунду</p>
-                    <button onclick="startGame()">
-                        <i class="fas fa-play"></i> НАЧАТЬ ИГРУ
+                <div id="gameStartScreen" class="geometry-start">
+                    <h2>🎮 GEOMETRY DASH</h2>
+                    <p>ПРЫГАЙ ЧЕРЕЗ ПРЕПЯТСТВИЯ!<br>С каждым очком скорость растёт!</p>
+                    <button onclick="startGeometryGame()">
+                        <i class="fas fa-play"></i> СТАРТ
                     </button>
                 </div>
                 
-                <div id="gameOverScreen" class="game-over">
+                <div id="gameOverScreen" class="geometry-gameover">
                     <h2>GAME OVER</h2>
-                    <p>Вы уничтожили <span id="finalKills">0</span> врагов</p>
-                    <button onclick="restartGame()">
-                        <i class="fas fa-redo-alt"></i> ИГРАТЬ СНОВА
+                    <p>ТВОЙ СЧЁТ: <span id="finalScore">0</span></p>
+                    <button onclick="restartGeometryGame()">
+                        <i class="fas fa-redo-alt"></i> ЕЩЁ РАЗ
                     </button>
                 </div>
             </div>
@@ -1420,29 +1346,40 @@
     <div class="notification-toast" id="notificationToast"></div>
 
     <script>
-        // ========== ИГРА SHOOTER ==========
-        const canvas = document.getElementById('gameCanvas');
+        // ========== ИГРА GEOMETRY DASH ==========
+        const canvas = document.getElementById('geometryCanvas');
         const ctx = canvas ? canvas.getContext('2d') : null;
         let gameRunning = false;
-        let player = { x: 400, y: 300, health: 100, kills: 0 };
-        let enemies = [];
-        let bullets = [];
-        let keys = {};
-        let mouseX = 400, mouseY = 300;
-        let enemySpawnInterval;
+        
+        // Игровые объекты
+        let player = {
+            x: 100,
+            y: 0,
+            width: 30,
+            height: 30,
+            vy: 0,
+            gravity: 0.5,
+            jumpPower: -12,
+            grounded: true
+        };
+        
+        let obstacles = [];
+        let score = 0;
+        let speed = 5;
+        let frameCount = 0;
         let gameLoopId;
+        let obstacleInterval;
 
         // Инициализация игры
-        function initGame() {
+        function initGeometryGame() {
             if (!canvas) return;
             
             function resizeCanvas() {
-                const container = document.querySelector('.game-container');
+                const container = document.querySelector('.geometry-container');
                 if (container) {
                     canvas.width = container.clientWidth;
                     canvas.height = container.clientHeight;
-                    player.x = canvas.width / 2;
-                    player.y = canvas.height / 2;
+                    resetGame();
                 }
             }
             
@@ -1451,312 +1388,246 @@
             
             // Управление
             window.addEventListener('keydown', (e) => {
-                keys[e.key.toLowerCase()] = true;
-                if (e.key === 'a' || e.key === 'd' || e.key === 'ф' || e.key === 'в') {
+                if (!gameRunning) return;
+                
+                if (e.key === ' ' || e.key === 'Space') {
                     e.preventDefault();
+                    jump();
                 }
-            });
-            
-            window.addEventListener('keyup', (e) => {
-                keys[e.key.toLowerCase()] = false;
-            });
-            
-            // Мышь
-            canvas.addEventListener('mousemove', (e) => {
-                const rect = canvas.getBoundingClientRect();
-                const scaleX = canvas.width / rect.width;
-                const scaleY = canvas.height / rect.height;
-                mouseX = (e.clientX - rect.left) * scaleX;
-                mouseY = (e.clientY - rect.top) * scaleY;
+                if (e.key === 'r' || e.key === 'R') {
+                    restartGeometryGame();
+                }
             });
             
             canvas.addEventListener('click', () => {
-                if (gameRunning && player.health > 0) {
-                    shoot();
+                if (gameRunning) {
+                    jump();
                 }
             });
         }
 
-        // Стрельба
-        function shoot() {
-            if (!gameRunning || player.health <= 0) return;
-            
-            const angle = Math.atan2(mouseY - player.y, mouseX - player.x);
-            bullets.push({
-                x: player.x,
-                y: player.y,
-                vx: Math.cos(angle) * 12,
-                vy: Math.sin(angle) * 12,
-                life: 60
-            });
+        // Прыжок
+        function jump() {
+            if (player.y >= canvas.height - player.height - 50) {
+                player.vy = player.jumpPower;
+                player.grounded = false;
+            }
         }
 
-        // Спавн врага
-        function spawnEnemy() {
+        // Спавн препятствия
+        function spawnObstacle() {
             if (!gameRunning || !canvas) return;
             
-            const side = Math.floor(Math.random() * 4);
-            let x, y;
+            const types = [
+                { width: 20, height: 40, color: '#ff6b6b' },  // Высокое
+                { width: 30, height: 30, color: '#4ecdc4' },  // Квадрат
+                { width: 40, height: 20, color: '#ffd93d' },  // Низкое
+                { width: 25, height: 50, color: '#a8e6cf' }   // Очень высокое
+            ];
             
-            switch(side) {
-                case 0: x = Math.random() * canvas.width; y = -30; break;
-                case 1: x = canvas.width + 30; y = Math.random() * canvas.height; break;
-                case 2: x = Math.random() * canvas.width; y = canvas.height + 30; break;
-                case 3: x = -30; y = Math.random() * canvas.height; break;
-            }
+            const type = types[Math.floor(Math.random() * types.length)];
             
-            enemies.push({
-                x, y,
-                health: 30 + (player.kills * 2),
-                maxHealth: 30 + (player.kills * 2),
-                speed: 1.5 + (player.kills * 0.1),
-                size: 18
+            obstacles.push({
+                x: canvas.width,
+                y: canvas.height - type.height - 50,
+                width: type.width,
+                height: type.height,
+                color: type.color,
+                passed: false
             });
         }
 
         // Обновление игры
-        function update() {
+        function updateGame() {
             if (!gameRunning || !canvas) return;
             
-            // Движение игрока
-            if (keys['a'] || keys['ф']) player.x -= 6;
-            if (keys['d'] || keys['в']) player.x += 6;
-            player.x = Math.max(25, Math.min(canvas.width - 25, player.x));
-            player.y = Math.max(25, Math.min(canvas.height - 25, player.y));
+            // Физика игрока
+            player.vy += player.gravity;
+            player.y += player.vy;
             
-            // Пули
-            for (let i = bullets.length - 1; i >= 0; i--) {
-                const b = bullets[i];
-                b.x += b.vx;
-                b.y += b.vy;
-                b.life--;
+            // Гравитация
+            if (player.y >= canvas.height - player.height - 50) {
+                player.y = canvas.height - player.height - 50;
+                player.vy = 0;
+                player.grounded = true;
+            }
+            
+            if (player.y < 0) {
+                player.y = 0;
+                player.vy = 0;
+            }
+            
+            // Движение препятствий
+            for (let i = obstacles.length - 1; i >= 0; i--) {
+                const obs = obstacles[i];
+                obs.x -= speed;
                 
-                if (b.x < 0 || b.x > canvas.width || b.y < 0 || b.y > canvas.height || b.life <= 0) {
-                    bullets.splice(i, 1);
-                    continue;
+                // Проверка прохождения
+                if (!obs.passed && obs.x + obs.width < player.x) {
+                    obs.passed = true;
+                    score += 10;
+                    document.getElementById('score').textContent = score;
+                    
+                    // Увеличение скорости каждые 50 очков
+                    if (score % 50 === 0) {
+                        speed += 1;
+                        document.getElementById('speedLevel').textContent = Math.floor(speed / 5);
+                        showNotification('Geometry Dash', `СКОРОСТЬ УВЕЛИЧЕНА! x${Math.floor(speed / 5)}`);
+                    }
                 }
                 
-                // Проверка попаданий
-                for (let j = enemies.length - 1; j >= 0; j--) {
-                    const e = enemies[j];
-                    const dx = b.x - e.x;
-                    const dy = b.y - e.y;
-                    const dist = Math.sqrt(dx * dx + dy * dy);
-                    
-                    if (dist < e.size + 3) {
-                        bullets.splice(i, 1);
-                        e.health -= 15;
-                        
-                        if (e.health <= 0) {
-                            enemies.splice(j, 1);
-                            player.kills++;
-                            document.getElementById('killCount').textContent = player.kills;
-                            showNotification('Shooter', 'Враг уничтожен! +15 очков');
-                        }
-                        break;
-                    }
+                // Проверка столкновения
+                if (checkCollision(player, obs)) {
+                    gameOver();
+                    break;
+                }
+                
+                // Удаление за экраном
+                if (obs.x + obs.width < 0) {
+                    obstacles.splice(i, 1);
                 }
             }
             
-            // Движение врагов
-            for (let i = enemies.length - 1; i >= 0; i--) {
-                const e = enemies[i];
-                const dx = player.x - e.x;
-                const dy = player.y - e.y;
-                const dist = Math.sqrt(dx * dx + dy * dy);
-                
-                if (dist > 0) {
-                    e.x += (dx / dist) * e.speed;
-                    e.y += (dy / dist) * e.speed;
-                }
-                
-                // Столкновение с игроком
-                if (dist < e.size + 20) {
-                    player.health -= 0.8;
-                    document.getElementById('playerHealth').textContent = Math.max(0, Math.floor(player.health));
-                    
-                    if (player.health <= 0) {
-                        player.health = 0;
-                        gameOver();
-                    }
-                }
-            }
-            
-            // Увеличение сложности
-            if (player.kills > 0 && player.kills % 5 === 0 && enemies.length < 10 + player.kills) {
-                spawnEnemy();
+            // Спавн препятствий
+            frameCount++;
+            if (frameCount > Math.max(60 - speed * 2, 30)) {
+                spawnObstacle();
+                frameCount = 0;
             }
         }
 
+        // Проверка столкновения
+        function checkCollision(player, obstacle) {
+            return player.x < obstacle.x + obstacle.width &&
+                   player.x + player.width > obstacle.x &&
+                   player.y < obstacle.y + obstacle.height &&
+                   player.y + player.height > obstacle.y;
+        }
+
         // Отрисовка
-        function draw() {
+        function drawGame() {
             if (!ctx || !canvas) return;
             
             // Фон
             ctx.fillStyle = '#0a0f1f';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
             
-            // Сетка
-            ctx.strokeStyle = 'rgba(78, 205, 196, 0.1)';
-            ctx.lineWidth = 1;
+            // Пол
+            ctx.fillStyle = '#2c3e50';
+            ctx.fillRect(0, canvas.height - 50, canvas.width, 50);
+            
+            // Разметка пола
+            ctx.strokeStyle = '#4ecdc4';
+            ctx.lineWidth = 2;
             for (let i = 0; i < canvas.width; i += 50) {
                 ctx.beginPath();
-                ctx.moveTo(i, 0);
-                ctx.lineTo(i, canvas.height);
-                ctx.stroke();
-            }
-            for (let i = 0; i < canvas.height; i += 50) {
-                ctx.beginPath();
-                ctx.moveTo(0, i);
-                ctx.lineTo(canvas.width, i);
+                ctx.moveTo(i + (frameCount % 50), canvas.height - 50);
+                ctx.lineTo(i + 30 + (frameCount % 50), canvas.height - 45);
                 ctx.stroke();
             }
             
-            // Враги
-            enemies.forEach(e => {
+            // Препятствия
+            obstacles.forEach(obs => {
                 // Тень
-                ctx.shadowColor = '#ff6b6b';
+                ctx.shadowColor = obs.color;
                 ctx.shadowBlur = 15;
                 
-                // Тело врага
-                ctx.fillStyle = '#ff6b6b';
-                ctx.beginPath();
-                ctx.arc(e.x, e.y, e.size, 0, Math.PI * 2);
-                ctx.fill();
+                ctx.fillStyle = obs.color;
+                ctx.fillRect(obs.x, obs.y, obs.width, obs.height);
                 
-                // Глаза врага
+                // Подсветка
                 ctx.shadowBlur = 5;
-                ctx.fillStyle = 'white';
-                ctx.beginPath();
-                ctx.arc(e.x - 5, e.y - 4, 3, 0, Math.PI * 2);
-                ctx.arc(e.x + 5, e.y - 4, 3, 0, Math.PI * 2);
-                ctx.fill();
-                
-                ctx.fillStyle = '#2c3e50';
-                ctx.beginPath();
-                ctx.arc(e.x - 6, e.y - 5, 1.5, 0, Math.PI * 2);
-                ctx.arc(e.x + 4, e.y - 5, 1.5, 0, Math.PI * 2);
-                ctx.fill();
-                
-                // Полоска здоровья
-                ctx.shadowBlur = 0;
-                ctx.fillStyle = 'rgba(0,0,0,0.8)';
-                ctx.fillRect(e.x - 25, e.y - 30, 50, 6);
-                ctx.fillStyle = '#4ecdc4';
-                ctx.fillRect(e.x - 25, e.y - 30, 50 * (e.health / e.maxHealth), 6);
+                ctx.fillStyle = 'rgba(255,255,255,0.3)';
+                ctx.fillRect(obs.x + 2, obs.y + 2, obs.width - 4, 4);
             });
             
-            // Пули
-            ctx.shadowColor = '#4ecdc4';
-            ctx.shadowBlur = 8;
-            bullets.forEach(b => {
-                ctx.fillStyle = '#4ecdc4';
-                ctx.beginPath();
-                ctx.arc(b.x, b.y, 4, 0, Math.PI * 2);
-                ctx.fill();
-            });
-            
-            // Игрок
+            // Игрок (кубик)
             ctx.shadowColor = '#4ecdc4';
             ctx.shadowBlur = 20;
             
-            // Тело игрока
+            // Тело
             ctx.fillStyle = '#4ecdc4';
-            ctx.beginPath();
-            ctx.arc(player.x, player.y, 18, 0, Math.PI * 2);
-            ctx.fill();
+            ctx.fillRect(player.x, player.y, player.width, player.height);
             
-            // Глаза игрока
+            // Глаза
             ctx.shadowBlur = 5;
             ctx.fillStyle = 'white';
-            ctx.beginPath();
-            ctx.arc(player.x - 6, player.y - 5, 4, 0, Math.PI * 2);
-            ctx.arc(player.x + 6, player.y - 5, 4, 0, Math.PI * 2);
-            ctx.fill();
+            ctx.fillRect(player.x + 5, player.y + 5, 5, 5);
+            ctx.fillRect(player.x + 15, player.y + 5, 5, 5);
             
             ctx.fillStyle = '#2c3e50';
-            ctx.beginPath();
-            ctx.arc(player.x - 7, player.y - 6, 2, 0, Math.PI * 2);
-            ctx.arc(player.x + 5, player.y - 6, 2, 0, Math.PI * 2);
-            ctx.fill();
+            ctx.fillRect(player.x + 6, player.y + 6, 3, 3);
+            ctx.fillRect(player.x + 16, player.y + 6, 3, 3);
             
-            // Оружие
-            ctx.shadowBlur = 10;
-            ctx.fillStyle = '#95a5a6';
+            // Улыбка
             ctx.beginPath();
-            ctx.moveTo(player.x, player.y - 3);
-            ctx.lineTo(player.x + 25, player.y - 8);
-            ctx.lineTo(player.x + 25, player.y + 2);
-            ctx.closePath();
-            ctx.fill();
-            
-            // Прицел
-            ctx.shadowBlur = 10;
             ctx.strokeStyle = 'white';
             ctx.lineWidth = 2;
-            ctx.beginPath();
-            ctx.moveTo(mouseX - 15, mouseY);
-            ctx.lineTo(mouseX - 5, mouseY);
-            ctx.moveTo(mouseX + 5, mouseY);
-            ctx.lineTo(mouseX + 15, mouseY);
-            ctx.moveTo(mouseX, mouseY - 15);
-            ctx.lineTo(mouseX, mouseY - 5);
-            ctx.moveTo(mouseX, mouseY + 5);
-            ctx.lineTo(mouseX, mouseY + 15);
+            ctx.arc(player.x + 15, player.y + 20, 5, 0, Math.PI);
             ctx.stroke();
+            
+            // Эффект прыжка
+            if (!player.grounded) {
+                ctx.shadowBlur = 30;
+                ctx.fillStyle = 'rgba(78,205,196,0.3)';
+                ctx.beginPath();
+                ctx.arc(player.x + player.width/2, player.y + player.height, 10, 0, Math.PI * 2);
+                ctx.fill();
+            }
             
             ctx.shadowBlur = 0;
         }
 
-        // Game loop
-        function gameLoop() {
+        // Game Loop
+        function geometryGameLoop() {
             if (!gameRunning) return;
-            update();
-            draw();
-            gameLoopId = requestAnimationFrame(gameLoop);
+            updateGame();
+            drawGame();
+            gameLoopId = requestAnimationFrame(geometryGameLoop);
         }
 
-        // Start game
-        function startGame() {
+        // Старт игры
+        function startGeometryGame() {
             gameRunning = true;
-            player = {
-                x: canvas.width / 2,
-                y: canvas.height / 2,
-                health: 100,
-                kills: 0
-            };
-            enemies = [];
-            bullets = [];
+            resetGame();
             
             document.getElementById('gameStartScreen').style.display = 'none';
             document.getElementById('gameOverScreen').style.display = 'none';
-            document.getElementById('playerHealth').textContent = '100';
-            document.getElementById('killCount').textContent = '0';
             
-            if (enemySpawnInterval) clearInterval(enemySpawnInterval);
-            enemySpawnInterval = setInterval(() => {
-                if (gameRunning) spawnEnemy();
-            }, 1000);
+            if (obstacleInterval) clearInterval(obstacleInterval);
             
-            gameLoop();
-            showNotification('Shooter', 'Игра началась! Уничтожай врагов!');
+            geometryGameLoop();
+            showNotification('Geometry Dash', 'Игра началась! Прыгай через препятствия!');
         }
 
-        // Game over
+        // Сброс игры
+        function resetGame() {
+            player.y = canvas.height - player.height - 50;
+            player.vy = 0;
+            obstacles = [];
+            score = 0;
+            speed = 5;
+            frameCount = 0;
+            
+            document.getElementById('score').textContent = '0';
+            document.getElementById('speedLevel').textContent = '1';
+        }
+
+        // Game Over
         function gameOver() {
             gameRunning = false;
-            if (enemySpawnInterval) clearInterval(enemySpawnInterval);
+            if (obstacleInterval) clearInterval(obstacleInterval);
             if (gameLoopId) cancelAnimationFrame(gameLoopId);
             
-            document.getElementById('finalKills').textContent = player.kills;
+            document.getElementById('finalScore').textContent = score;
             document.getElementById('gameOverScreen').style.display = 'block';
-            showNotification('Shooter', 'Игра окончена! Убито: ' + player.kills);
+            showNotification('Geometry Dash', 'Игра окончена! Счёт: ' + score);
         }
 
-        // Restart game
-        function restartGame() {
+        // Рестарт
+        function restartGeometryGame() {
             document.getElementById('gameOverScreen').style.display = 'none';
-            startGame();
+            startGeometryGame();
         }
 
         // ========== ХРАНИЛИЩЕ ДАННЫХ ==========
@@ -1879,7 +1750,7 @@
             updateTime();
             setInterval(updateTime, 1000);
             loadFileManager();
-            initGame();
+            initGeometryGame();
             showNotification('MAX OS', 'Добро пожаловать в MAX OS 0.01.0 beta!');
         }
 
@@ -1961,7 +1832,7 @@
                     loadChatHistory();
                 }
                 
-                if (appName === 'shooter') {
+                if (appName === 'geometry') {
                     setTimeout(() => {
                         if (!gameRunning) {
                             document.getElementById('gameStartScreen').style.display = 'block';
@@ -1991,10 +1862,10 @@
         function maximizeWindow(appName) {
             const win = document.getElementById(appName + 'Window');
             if (win.style.width === '100%') {
-                win.style.width = appName === 'shooter' ? '1000px' : 
+                win.style.width = appName === 'geometry' ? '1000px' : 
                                  appName === 'calculator' ? '400px' : 
                                  appName === 'assistant' ? '500px' : '900px';
-                win.style.height = appName === 'shooter' ? '650px' : 
+                win.style.height = appName === 'geometry' ? '650px' : 
                                   appName === 'calculator' ? '500px' : 
                                   appName === 'assistant' ? '600px' : '600px';
                 win.style.top = '50px';
@@ -2139,7 +2010,6 @@
             localStorage.setItem('max_wallpaper', name);
             showNotification('Обои', `Установлены обои: ${name}`);
             
-            // Обновляем выделение в папке обоев
             if (document.getElementById('filesWindow').style.display === 'block') {
                 openFolder('Обои');
             }
@@ -2259,8 +2129,8 @@
             'браузер': 'Браузер MAX поддерживает все современные сайты',
             'калькулятор': 'Выполняет все основные математические операции',
             'обои': 'Зайдите в папку "Обои" в файловом менеджере',
-            'игра': 'Shooter - тактический шутер. Управление: A/D движение, мышь - цель, клик - стрельба',
-            'shooter': 'Крутая игра! Управляй A/D, стреляй мышкой!',
+            'игра': 'Geometry Dash - ритм-игра! Прыгай через препятствия, нажимай ПРОБЕЛ или клик',
+            'geometry': 'Классная игра! Управление: ПРОБЕЛ - прыжок, R - рестарт',
             'спасибо': 'Пожалуйста! Обращайтесь!'
         };
 
@@ -2291,7 +2161,6 @@
             const message = input.value.trim();
             if (!message) return;
             
-            // Сообщение пользователя
             const userMsg = document.createElement('div');
             userMsg.className = 'message user';
             userMsg.textContent = message;
@@ -2299,7 +2168,6 @@
             saveChatMessage('user', message);
             input.value = '';
             
-            // Ответ помощника
             setTimeout(() => {
                 let response = 'Извините, я не понял. Попробуйте спросить по-другому.';
                 
