@@ -1,2249 +1,288 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MAX OS 0.01.0 beta</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            user-select: none;
-        }
-
-        body {
-            background: #000;
-            overflow: hidden;
-        }
-
-        /* ===== ЭКРАН ЗАГРУЗКИ ===== */
-        #bootScreen {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: #000;
-            background-image: linear-gradient(rgba(0,0,0,0.9), rgba(0,0,0,0.9)), 
-                            url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="400" height="400" viewBox="0 0 200 200"><defs><linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="%234ECDC4"/><stop offset="100%" stop-color="%23FF6B6B"/></linearGradient></defs><path d="M37.5,186c-12.1-10.5-11.8-32.3-7.2-46.7c4.8-15,13.1-17.8,30.1-36.7C91,68.8,83.5,56.7,103.4,45c22.2-13.1,51.1-9.5,69.6-1.6c18.1,7.8,15.7,15.3,43.3,33.2c28.8,18.8,37.8,10.5,50.7,33.9c13.8,24.8-5.2,42.9-21.3,36.7c-8.2-3.1-17.3-5.8-31.1-8.3c-35.3-6.4-65.9-1.4-81.9,4c-27.4,9.1-30.5,20.3-60.1,28.4C87.6,198.4,76.9,204,37.5,186z" fill="url(%23g)" opacity="0.5"/></svg>');
-            color: #fff;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-            transition: opacity 0.5s;
-        }
-
-        .boot-logo {
-            font-size: 4.5rem;
-            font-weight: bold;
-            margin-bottom: 2rem;
-            background: linear-gradient(90deg, #ff6b6b, #4ecdc4, #45b7d1);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            text-shadow: 0 0 30px rgba(78, 205, 196, 0.5);
-            animation: glow 2s infinite alternate;
-        }
-
-        @keyframes glow {
-            from { text-shadow: 0 0 20px rgba(78, 205, 196, 0.5); }
-            to { text-shadow: 0 0 30px rgba(255, 107, 107, 0.7); }
-        }
-
-        .boot-progress {
-            width: 300px;
-            height: 6px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 3px;
-            overflow: hidden;
-            margin-top: 20px;
-        }
-
-        .boot-progress-bar {
-            height: 100%;
-            width: 0%;
-            background: linear-gradient(90deg, #ff6b6b, #4ecdc4);
-            transition: width 0.3s;
-            border-radius: 3px;
-        }
-
-        .boot-text {
-            margin-top: 20px;
-            color: #8ba0b5;
-            font-size: 0.9rem;
-        }
-
-        /* ===== ЭКРАН ВХОДА ===== */
-        #loginScreen {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: #000;
-            background-image: linear-gradient(rgba(0,0,0,0.85), rgba(0,0,0,0.85)), 
-                            url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" opacity="0.1"><path d="M0,50 C20,0 50,0 50,50 C50,100 80,100 100,50" stroke="white" fill="none"/></svg>');
-            background-size: cover;
-            background-position: center;
-            display: none;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            z-index: 999;
-        }
-
-        .login-container {
-            background: rgba(20, 20, 20, 0.9);
-            backdrop-filter: blur(20px);
-            padding: 50px 40px;
-            border-radius: 25px;
-            text-align: center;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
-            width: 350px;
-        }
-
-        .login-title {
-            color: white;
-            font-size: 2.8rem;
-            margin-bottom: 10px;
-            background: linear-gradient(90deg, #ff6b6b, #4ecdc4);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .login-subtitle {
-            color: #8ba0b5;
-            margin-bottom: 40px;
-            font-size: 0.9rem;
-        }
-
-        .login-input {
-            width: 100%;
-            padding: 15px 25px;
-            margin: 10px 0;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 30px;
-            background: rgba(255, 255, 255, 0.05);
-            color: white;
-            font-size: 1rem;
-            text-align: center;
-            transition: all 0.3s;
-        }
-
-        .login-input:focus {
-            outline: none;
-            border-color: #4ecdc4;
-            box-shadow: 0 0 15px rgba(78, 205, 196, 0.3);
-        }
-
-        .login-button {
-            width: 100%;
-            padding: 15px;
-            margin-top: 20px;
-            border: none;
-            border-radius: 30px;
-            background: linear-gradient(90deg, #ff6b6b, #ff8e53);
-            color: white;
-            font-size: 1rem;
-            font-weight: bold;
-            cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s;
-        }
-
-        .login-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(255, 107, 107, 0.3);
-        }
-
-        .login-create {
-            margin-top: 20px;
-            color: #8ba0b5;
-            font-size: 0.9rem;
-            cursor: pointer;
-            text-decoration: underline;
-            transition: color 0.3s;
-        }
-
-        .login-create:hover {
-            color: #4ecdc4;
-        }
-
-        /* ===== РАБОЧИЙ СТОЛ ===== */
-        #desktop {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: #000;
-            background-image: url('https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1920&q=80&auto=format&fit=crop');
-            background-size: cover;
-            background-position: center;
-            display: none;
-            overflow: hidden;
-            transition: filter 0.3s;
-        }
-
-        .desktop-overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.4);
-        }
-
-        /* Панель задач */
-        #taskbar {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            height: 50px;
-            background: rgba(10, 10, 10, 0.8);
-            backdrop-filter: blur(15px);
-            display: flex;
-            align-items: center;
-            padding: 0 25px;
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
-            z-index: 900;
-        }
-
-        #time {
-            color: white;
-            font-size: 0.9rem;
-            margin-left: auto;
-            font-family: 'Courier New', monospace;
-            background: rgba(0, 0, 0, 0.3);
-            padding: 5px 15px;
-            border-radius: 15px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        #showPanel {
-            background: none;
-            border: none;
-            color: white;
-            font-size: 1.8rem;
-            cursor: pointer;
-            margin-right: 20px;
-            transition: transform 0.3s;
-        }
-
-        #showPanel:hover {
-            transform: scale(1.2);
-        }
-
-        /* Значки рабочего стола */
-        .desktop-icons {
-            padding: 30px;
-            display: grid;
-            grid-template-columns: repeat(auto-fill, 90px);
-            grid-gap: 25px;
-            position: relative;
-            z-index: 1;
-        }
-
-        .desktop-icon {
-            width: 90px;
-            height: 90px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            text-align: center;
-            cursor: pointer;
-            border-radius: 15px;
-            padding: 15px;
-            transition: all 0.3s;
-            background: rgba(0, 0, 0, 0.4);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .desktop-icon:hover {
-            background: rgba(255, 255, 255, 0.15);
-            transform: translateY(-5px);
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
-        }
-
-        .desktop-icon i {
-            font-size: 2.5rem;
-            margin-bottom: 10px;
-            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));
-        }
-
-        .desktop-icon-text {
-            font-size: 0.85rem;
-            text-shadow: 0 1px 3px rgba(0,0,0,0.8);
-            font-weight: 500;
-        }
-
-        /* ===== ШТОРКА ===== */
-        #notificationPanel {
-            position: fixed;
-            top: -400px;
-            right: 15px;
-            width: 380px;
-            height: 450px;
-            background: rgba(15, 15, 15, 0.95);
-            backdrop-filter: blur(25px);
-            border-radius: 25px;
-            padding: 25px;
-            color: white;
-            z-index: 1001;
-            transition: top 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
-            overflow-y: auto;
-        }
-
-        .panel-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 25px;
-            padding-bottom: 15px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.15);
-        }
-
-        .panel-title {
-            font-size: 1.4rem;
-            font-weight: bold;
-            background: linear-gradient(90deg, #ff6b6b, #4ecdc4);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .panel-close {
-            background: none;
-            border: none;
-            color: white;
-            font-size: 1.8rem;
-            cursor: pointer;
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: background 0.3s;
-        }
-
-        .panel-close:hover {
-            background: rgba(255, 255, 255, 0.1);
-        }
-
-        /* Быстрые настройки */
-        .quick-settings {
-            margin-bottom: 30px;
-        }
-
-        .settings-title {
-            font-size: 1.1rem;
-            margin-bottom: 20px;
-            color: white;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .settings-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 15px;
-            margin-bottom: 25px;
-        }
-
-        .setting-item {
-            background: rgba(255, 255, 255, 0.08);
-            border-radius: 15px;
-            padding: 15px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.3s;
-            border: 1px solid rgba(255, 255, 255, 0.05);
-        }
-
-        .setting-item:hover {
-            background: rgba(255, 255, 255, 0.12);
-            transform: translateY(-3px);
-        }
-
-        .setting-item i {
-            font-size: 1.5rem;
-            margin-bottom: 10px;
-            color: #4ecdc4;
-        }
-
-        .setting-item.active {
-            background: rgba(78, 205, 196, 0.2);
-            border-color: rgba(78, 205, 196, 0.3);
-        }
-
-        /* Слайдеры настроек */
-        .slider-container {
-            margin-bottom: 25px;
-        }
-
-        .slider-label {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 10px;
-            color: #8ba0b5;
-        }
-
-        .slider {
-            width: 100%;
-            height: 6px;
-            -webkit-appearance: none;
-            appearance: none;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 3px;
-            outline: none;
-        }
-
-        .slider::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            appearance: none;
-            width: 20px;
-            height: 20px;
-            border-radius: 50%;
-            background: #4ecdc4;
-            cursor: pointer;
-            border: 2px solid rgba(255, 255, 255, 0.2);
-        }
-
-        .slider::-moz-range-thumb {
-            width: 20px;
-            height: 20px;
-            border-radius: 50%;
-            background: #4ecdc4;
-            cursor: pointer;
-            border: 2px solid rgba(255, 255, 255, 0.2);
-        }
-
-        /* Уведомления */
-        .notifications-section {
-            margin-top: 30px;
-        }
-
-        .notifications-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-        }
-
-        #clearNotifications {
-            background: rgba(255, 107, 107, 0.2);
-            color: #ff6b6b;
-            border: 1px solid rgba(255, 107, 107, 0.3);
-            border-radius: 15px;
-            padding: 8px 15px;
-            cursor: pointer;
-            font-size: 0.85rem;
-            transition: all 0.3s;
-        }
-
-        #clearNotifications:hover {
-            background: rgba(255, 107, 107, 0.3);
-        }
-
-        .notification-item {
-            background: rgba(255, 255, 255, 0.05);
-            padding: 15px;
-            border-radius: 15px;
-            margin-bottom: 10px;
-            border-left: 4px solid #4ecdc4;
-            transition: all 0.3s;
-        }
-
-        .notification-item:hover {
-            background: rgba(255, 255, 255, 0.08);
-        }
-
-        .notification-title {
-            font-weight: bold;
-            margin-bottom: 5px;
-            color: white;
-        }
-
-        .notification-text {
-            color: #8ba0b5;
-            font-size: 0.9rem;
-        }
-
-        .empty-notifications {
-            text-align: center;
-            color: #8ba0b5;
-            padding: 30px;
-            font-style: italic;
-        }
-
-        /* ===== ОКНА ПРИЛОЖЕНИЙ ===== */
-        .window {
-            position: absolute;
-            top: 50px;
-            left: 50px;
-            width: 900px;
-            height: 600px;
-            background: rgba(20, 20, 20, 0.95);
-            border-radius: 20px;
-            box-shadow: 0 30px 70px rgba(0, 0, 0, 0.5);
-            display: none;
-            overflow: hidden;
-            z-index: 100;
-            min-width: 400px;
-            min-height: 300px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(20px);
-        }
-
-        .window-header {
-            height: 50px;
-            background: linear-gradient(90deg, #1a1a1a, #2a2a2a);
-            color: white;
-            display: flex;
-            align-items: center;
-            padding: 0 20px;
-            justify-content: space-between;
-            cursor: move;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .window-title {
-            font-weight: bold;
-            font-size: 1.1rem;
-        }
-
-        .window-controls {
-            display: flex;
-            gap: 12px;
-        }
-
-        .window-control {
-            width: 14px;
-            height: 14px;
-            border-radius: 50%;
-            cursor: pointer;
-            transition: transform 0.2s;
-        }
-
-        .window-control:hover {
-            transform: scale(1.2);
-        }
-
-        .close { background: #ff5f57; }
-        .minimize { background: #ffbd2e; }
-        .maximize { background: #28ca42; }
-
-        .window-content {
-            height: calc(100% - 50px);
-            padding: 0;
-            background: rgba(15, 15, 15, 0.9);
-            color: white;
-            overflow: hidden;
-        }
-
-        /* ===== ИГРА GEOMETRY DASH ===== */
-        #geometryWindow .window-content {
-            background: linear-gradient(135deg, #0a0f1f 0%, #1a1f2f 100%);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .geometry-container {
-            position: relative;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(135deg, #1a2a3a 0%, #0f1a2a 100%);
-            overflow: hidden;
-        }
-
-        #geometryCanvas {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            display: block;
-        }
-
-        .geometry-hud {
-            position: absolute;
-            top: 20px;
-            left: 20px;
-            color: white;
-            font-family: 'Courier New', monospace;
-            text-shadow: 0 0 10px rgba(0,0,0,0.5);
-            z-index: 10;
-            background: rgba(0,0,0,0.8);
-            padding: 20px 30px;
-            border-radius: 15px;
-            border: 2px solid #4ecdc4;
-            backdrop-filter: blur(5px);
-            font-size: 1.2rem;
-        }
-
-        .geometry-hud span {
-            color: #ff6b6b;
-            font-weight: bold;
-            font-size: 1.8rem;
-            text-shadow: 0 0 10px rgba(255,107,107,0.5);
-        }
-
-        .geometry-controls {
-            position: absolute;
-            bottom: 30px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(0,0,0,0.9);
-            padding: 20px 40px;
-            border-radius: 50px;
-            color: white;
-            display: flex;
-            gap: 40px;
-            backdrop-filter: blur(10px);
-            border: 2px solid #ff6b6b;
-            z-index: 10;
-            font-size: 1.1rem;
-            box-shadow: 0 0 30px rgba(255,107,107,0.3);
-        }
-
-        .geometry-controls i {
-            color: #ff6b6b;
-            margin-right: 10px;
-        }
-
-        .geometry-start {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: rgba(0,0,0,0.95);
-            padding: 60px 80px;
-            border-radius: 30px;
-            text-align: center;
-            z-index: 21;
-            border: 2px solid #4ecdc4;
-            backdrop-filter: blur(10px);
-            box-shadow: 0 0 50px rgba(78,205,196,0.5);
-        }
-
-        .geometry-start h2 {
-            font-size: 3.5rem;
-            color: #4ecdc4;
-            margin-bottom: 30px;
-            text-shadow: 0 0 20px rgba(78,205,196,0.5);
-            animation: pulse 2s infinite;
-        }
-
-        .geometry-start p {
-            font-size: 1.3rem;
-            color: #8ba0b5;
-            margin-bottom: 40px;
-            max-width: 400px;
-            line-height: 1.6;
-        }
-
-        .geometry-start button {
-            background: linear-gradient(135deg, #4ecdc4, #45b7d1);
-            border: none;
-            color: white;
-            padding: 20px 60px;
-            font-size: 1.5rem;
-            border-radius: 50px;
-            cursor: pointer;
-            font-weight: bold;
-            transition: all 0.3s;
-            border: 2px solid rgba(255,255,255,0.2);
-        }
-
-        .geometry-start button:hover {
-            transform: scale(1.1);
-            box-shadow: 0 0 40px rgba(78,205,196,0.8);
-        }
-
-        .geometry-gameover {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: rgba(0,0,0,0.95);
-            padding: 60px 80px;
-            border-radius: 30px;
-            text-align: center;
-            z-index: 20;
-            display: none;
-            border: 2px solid #ff6b6b;
-            backdrop-filter: blur(10px);
-            box-shadow: 0 0 50px rgba(255,107,107,0.5);
-        }
-
-        .geometry-gameover h2 {
-            font-size: 3.5rem;
-            color: #ff6b6b;
-            margin-bottom: 30px;
-            text-shadow: 0 0 20px rgba(255,107,107,0.5);
-        }
-
-        .geometry-gameover p {
-            font-size: 1.8rem;
-            color: white;
-            margin-bottom: 40px;
-        }
-
-        .geometry-gameover button {
-            background: linear-gradient(135deg, #ff6b6b, #ff8e53);
-            border: none;
-            color: white;
-            padding: 20px 60px;
-            font-size: 1.5rem;
-            border-radius: 50px;
-            cursor: pointer;
-            font-weight: bold;
-            transition: all 0.3s;
-        }
-
-        .geometry-gameover button:hover {
-            transform: scale(1.1);
-            box-shadow: 0 0 40px rgba(255,107,107,0.8);
-        }
-
-        /* Браузер */
-        #browserWindow .window-content {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .browser-bar {
-            display: flex;
-            padding: 15px;
-            background: rgba(30, 30, 30, 0.9);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        #browserUrl {
-            flex: 1;
-            padding: 12px 20px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 25px;
-            margin: 0 15px;
-            background: rgba(0, 0, 0, 0.3);
-            color: white;
-            font-size: 1rem;
-        }
-
-        #browserUrl:focus {
-            outline: none;
-            border-color: #4ecdc4;
-        }
-
-        .browser-button {
-            padding: 12px 25px;
-            background: linear-gradient(90deg, #4a6491, #2c3e50);
-            color: white;
-            border: none;
-            border-radius: 25px;
-            cursor: pointer;
-            font-weight: bold;
-            transition: transform 0.2s;
-        }
-
-        .browser-button:hover {
-            transform: scale(1.05);
-        }
-
-        #browserFrame {
-            flex: 1;
-            border: none;
-            background: white;
-        }
-
-        /* Файловый менеджер */
-        .file-manager {
-            display: flex;
-            height: 100%;
-        }
-
-        .file-sidebar {
-            width: 220px;
-            background: rgba(25, 25, 25, 0.9);
-            border-right: 1px solid rgba(255, 255, 255, 0.1);
-            padding: 20px;
-        }
-
-        .file-actions {
-            margin-bottom: 30px;
-        }
-
-        .file-action-btn {
-            width: 100%;
-            padding: 12px;
-            margin-bottom: 12px;
-            background: linear-gradient(90deg, #4a6491, #2c3e50);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 0.9rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            transition: transform 0.2s;
-        }
-
-        .file-action-btn:hover {
-            transform: translateY(-2px);
-        }
-
-        .file-content {
-            flex: 1;
-            padding: 25px;
-            overflow-y: auto;
-            background: rgba(15, 15, 15, 0.7);
-        }
-
-        .file-item {
-            display: inline-block;
-            width: 120px;
-            padding: 20px;
-            margin: 15px;
-            text-align: center;
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 15px;
-            cursor: pointer;
-            vertical-align: top;
-            transition: all 0.3s;
-            border: 1px solid rgba(255, 255, 255, 0.05);
-        }
-
-        .file-item:hover {
-            background: rgba(255, 255, 255, 0.1);
-            transform: translateY(-5px);
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
-        }
-
-        .file-icon {
-            font-size: 2.5rem;
-            margin-bottom: 15px;
-            color: #4ecdc4;
-        }
-
-        /* Калькулятор */
-        .calculator {
-            padding: 30px;
-            display: flex;
-            flex-direction: column;
-            height: 100%;
-        }
-
-        #calcDisplay {
-            width: 100%;
-            height: 80px;
-            background: rgba(0, 0, 0, 0.3);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 15px;
-            color: white;
-            font-size: 2.5rem;
-            text-align: right;
-            padding: 0 25px;
-            margin-bottom: 25px;
-            font-family: 'Courier New', monospace;
-            overflow: hidden;
-        }
-
-        .calc-buttons {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 15px;
-            flex: 1;
-        }
-
-        .calc-btn {
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 15px;
-            color: white;
-            font-size: 1.5rem;
-            cursor: pointer;
-            transition: all 0.2s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .calc-btn:hover {
-            background: rgba(255, 255, 255, 0.2);
-            transform: scale(0.98);
-        }
-
-        .calc-btn.operation {
-            background: linear-gradient(135deg, #ff6b6b, #ff8e53);
-        }
-
-        .calc-btn.equals {
-            background: linear-gradient(135deg, #4ecdc4, #45b7d1);
-        }
-
-        /* AI Помощник */
-        .assistant-chat {
-            display: flex;
-            flex-direction: column;
-            height: 100%;
-            padding: 25px;
-        }
-
-        #assistantHeader {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            margin-bottom: 25px;
-            padding-bottom: 15px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .assistant-avatar {
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #ff6b6b, #4ecdc4);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.8rem;
-            color: white;
-        }
-
-        #chatMessages {
-            flex: 1;
-            overflow-y: auto;
-            padding: 15px;
-            background: rgba(0, 0, 0, 0.3);
-            border-radius: 15px;
-            margin-bottom: 20px;
-        }
-
-        .message {
-            margin-bottom: 15px;
-            padding: 15px;
-            border-radius: 15px;
-            max-width: 80%;
-        }
-
-        .message.user {
-            background: rgba(78, 205, 196, 0.2);
-            border: 1px solid rgba(78, 205, 196, 0.3);
-            margin-left: auto;
-        }
-
-        .message.assistant {
-            background: rgba(255, 107, 107, 0.2);
-            border: 1px solid rgba(255, 107, 107, 0.3);
-        }
-
-        .chat-input-area {
-            display: flex;
-            gap: 15px;
-        }
-
-        #chatInput {
-            flex: 1;
-            padding: 15px 25px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 25px;
-            background: rgba(0, 0, 0, 0.3);
-            color: white;
-            font-size: 1rem;
-        }
-
-        #sendMessage {
-            padding: 15px 30px;
-            background: linear-gradient(135deg, #ff6b6b, #4ecdc4);
-            color: white;
-            border: none;
-            border-radius: 25px;
-            cursor: pointer;
-            font-weight: bold;
-            transition: transform 0.2s;
-        }
-
-        #sendMessage:hover {
-            transform: scale(1.05);
-        }
-
-        /* Уведомления */
-        .notification-toast {
-            position: fixed;
-            bottom: 70px;
-            right: 25px;
-            background: rgba(20, 20, 20, 0.95);
-            color: white;
-            padding: 20px 30px;
-            border-radius: 15px;
-            z-index: 1000;
-            display: none;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
-            max-width: 350px;
-            backdrop-filter: blur(20px);
-        }
-
-        /* Темная тема для браузера */
-        .dark-mode {
-            filter: invert(1) hue-rotate(180deg);
-        }
-
-        /* Стили для обоев в файловом менеджере */
-        .wallpaper-item {
-            position: relative;
-            overflow: hidden;
-            border: 3px solid transparent;
-            transition: border-color 0.3s;
-        }
-
-        .wallpaper-item.current {
-            border-color: #4ecdc4;
-            box-shadow: 0 0 20px rgba(78, 205, 196, 0.5);
-        }
-
-        .wallpaper-preview {
-            width: 100%;
-            height: 80px;
-            object-fit: cover;
-            border-radius: 10px;
-        }
-
-        .wallpaper-name {
-            margin-top: 5px;
-            font-size: 0.8rem;
-            color: white;
-        }
-    </style>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MAX OS 0.02.0 Neon Update</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+  <style>
+    :root{
+      --bg:#05070d;
+      --panel:rgba(10,14,24,.72);
+      --panel-strong:rgba(11,15,28,.92);
+      --glass:rgba(255,255,255,.08);
+      --glass2:rgba(255,255,255,.12);
+      --border:rgba(255,255,255,.15);
+      --text:#f5f8ff;
+      --muted:#8ea0bd;
+      --accent:#4ecdc4;
+      --accent2:#45b7d1;
+      --danger:#ff5f57;
+      --warn:#ffbd2e;
+      --ok:#28ca42;
+      --shadow:0 30px 90px rgba(0,0,0,.55);
+      --radius:24px;
+    }
+
+    *{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;user-select:none}
+    body{background:#000;overflow:hidden;color:var(--text)}
+    button,input,textarea{font:inherit}
+    button{cursor:pointer}
+
+    ::-webkit-scrollbar{width:10px;height:10px}
+    ::-webkit-scrollbar-track{background:rgba(255,255,255,.04)}
+    ::-webkit-scrollbar-thumb{background:linear-gradient(var(--accent),var(--accent2));border-radius:20px}
+
+    #bootScreen,#loginScreen,#desktop{position:fixed;inset:0}
+
+    #bootScreen{z-index:3000;background:radial-gradient(circle at top,#15243d 0,#05070d 45%,#000 100%);display:flex;align-items:center;justify-content:center;flex-direction:column;transition:.6s opacity}
+    #bootScreen:before{content:"";position:absolute;inset:-30%;background:conic-gradient(from 90deg,transparent,rgba(78,205,196,.12),transparent,rgba(255,107,107,.12),transparent);animation:spin 12s linear infinite}
+    .boot-card{position:relative;width:min(520px,90vw);padding:44px;border-radius:36px;background:rgba(0,0,0,.42);backdrop-filter:blur(24px);border:1px solid var(--border);box-shadow:var(--shadow);text-align:center}
+    .boot-logo{font-size:5rem;font-weight:900;letter-spacing:6px;background:linear-gradient(90deg,#ff6b6b,#4ecdc4,#45b7d1,#ff6b6b);background-size:300%;-webkit-background-clip:text;-webkit-text-fill-color:transparent;animation:gradient 4s linear infinite,glow 1.8s infinite alternate}
+    .boot-version{color:var(--muted);margin:8px 0 30px;font-weight:600}
+    .boot-progress{height:8px;background:rgba(255,255,255,.09);border-radius:999px;overflow:hidden;margin:22px 0}
+    #bootProgress{height:100%;width:0;background:linear-gradient(90deg,#ff6b6b,#4ecdc4,#45b7d1);border-radius:999px;box-shadow:0 0 24px rgba(78,205,196,.45);transition:.25s}
+    #bootStatus{color:#b8c7df;font-size:.95rem}
+
+    #loginScreen{z-index:2500;display:none;align-items:center;justify-content:center;background:radial-gradient(circle at 70% 20%,rgba(78,205,196,.22),transparent 35%),radial-gradient(circle at 20% 80%,rgba(255,107,107,.22),transparent 35%),#05070d}
+    .login-card{width:min(390px,92vw);padding:36px;border-radius:34px;background:var(--panel);backdrop-filter:blur(28px);border:1px solid var(--border);box-shadow:var(--shadow);text-align:center}
+    .login-avatar{width:94px;height:94px;margin:0 auto 18px;border-radius:30px;display:grid;place-items:center;background:linear-gradient(135deg,#ff6b6b,#4ecdc4);font-size:2.7rem;box-shadow:0 0 35px rgba(78,205,196,.25)}
+    .login-title{font-size:2.4rem;font-weight:900;margin-bottom:5px}
+    .login-subtitle{color:var(--muted);margin-bottom:26px}
+    .input{width:100%;padding:15px 18px;border-radius:18px;border:1px solid var(--border);background:rgba(0,0,0,.25);color:white;outline:none;transition:.25s;text-align:center}
+    .input:focus{border-color:rgba(78,205,196,.7);box-shadow:0 0 0 4px rgba(78,205,196,.08)}
+    .primary-btn{width:100%;margin-top:14px;border:0;border-radius:18px;padding:15px 20px;color:#fff;font-weight:800;background:linear-gradient(135deg,#ff6b6b,#ff8e53);transition:.25s;box-shadow:0 12px 30px rgba(255,107,107,.18)}
+    .primary-btn:hover{transform:translateY(-2px);box-shadow:0 18px 35px rgba(255,107,107,.28)}
+    .linkish{color:var(--muted);font-size:.9rem;margin-top:16px;text-decoration:underline;cursor:pointer}.linkish:hover{color:var(--accent)}
+
+    #desktop{display:none;background:#05070d;background-image:linear-gradient(rgba(5,7,13,.35),rgba(5,7,13,.55)),url('https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1920&q=80&auto=format&fit=crop');background-size:cover;background-position:center;overflow:hidden;filter:brightness(1)}
+    #desktop:before{content:"";position:absolute;inset:-50%;background:radial-gradient(circle,rgba(78,205,196,.08),transparent 28%);animation:floatBg 22s linear infinite;pointer-events:none}
+    .desktop-grid{position:relative;z-index:2;padding:28px;display:grid;grid-template-columns:repeat(auto-fill,95px);gap:20px;width:620px;max-width:100%}
+    .desktop-icon{width:95px;height:95px;border-radius:22px;background:rgba(0,0,0,.36);border:1px solid rgba(255,255,255,.12);backdrop-filter:blur(16px);display:flex;align-items:center;justify-content:center;flex-direction:column;text-align:center;color:white;transition:.22s;box-shadow:0 12px 30px rgba(0,0,0,.16)}
+    .desktop-icon i{font-size:2.3rem;margin-bottom:10px;filter:drop-shadow(0 5px 8px rgba(0,0,0,.5))}.desktop-icon span{font-size:.78rem;font-weight:650;text-shadow:0 2px 5px #000}
+    .desktop-icon:hover{background:rgba(255,255,255,.13);transform:translateY(-8px) scale(1.04);border-color:rgba(78,205,196,.35)}
+
+    #taskbar{position:absolute;left:16px;right:16px;bottom:14px;height:66px;z-index:2000;border-radius:25px;background:rgba(8,11,20,.76);backdrop-filter:blur(28px);border:1px solid var(--border);box-shadow:0 20px 60px rgba(0,0,0,.42);display:flex;align-items:center;padding:0 14px;gap:12px}
+    .max-button{width:48px;height:48px;border:0;border-radius:18px;background:linear-gradient(135deg,#ff6b6b,#4ecdc4);color:white;font-size:1.35rem;box-shadow:0 0 25px rgba(78,205,196,.28);transition:.22s}.max-button:hover{transform:scale(1.08) rotate(-4deg)}
+    #taskbarApps{display:flex;gap:10px;align-items:center}.taskbar-app{width:46px;height:46px;border-radius:17px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.08);display:grid;place-items:center;color:white;transition:.22s;font-size:1.12rem;position:relative}.taskbar-app:hover,.taskbar-app.active{transform:translateY(-5px);background:rgba(78,205,196,.18);border-color:rgba(78,205,196,.35)}.taskbar-app.active:after{content:"";position:absolute;bottom:4px;width:16px;height:3px;border-radius:10px;background:var(--accent)}
+    .taskbar-spacer{flex:1}.system-tray{display:flex;align-items:center;gap:9px;color:white}.tray-pill{height:42px;padding:0 14px;border-radius:16px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.09);display:flex;align-items:center;gap:8px;font-weight:700}.tray-pill.clickable{cursor:pointer}.tray-pill.clickable:hover{background:rgba(255,255,255,.12)}#time{font-family:'Courier New',monospace}
+
+    #startMenu{position:absolute;left:16px;bottom:92px;width:410px;max-width:calc(100vw - 32px);height:540px;z-index:2100;border-radius:32px;background:rgba(8,11,20,.88);backdrop-filter:blur(30px);border:1px solid var(--border);box-shadow:var(--shadow);display:none;overflow:hidden;padding:20px}
+    .start-top{display:flex;gap:12px;align-items:center;margin-bottom:16px}.start-logo{width:50px;height:50px;border-radius:18px;display:grid;place-items:center;background:linear-gradient(135deg,#ff6b6b,#4ecdc4);font-size:1.5rem}.start-title{font-size:1.35rem;font-weight:900}.start-sub{color:var(--muted);font-size:.86rem}.search{width:100%;padding:13px 16px;border-radius:17px;border:1px solid var(--border);background:rgba(255,255,255,.06);color:white;outline:none;margin-bottom:18px}.start-section-title{font-size:.85rem;color:var(--muted);font-weight:800;margin:12px 0}.start-apps{display:grid;grid-template-columns:repeat(3,1fr);gap:11px}.start-app{height:86px;border-radius:20px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.08);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;transition:.2s}.start-app:hover{background:rgba(78,205,196,.16);transform:translateY(-3px)}.start-app i{font-size:1.45rem}.power-row{position:absolute;left:20px;right:20px;bottom:18px;display:flex;gap:10px}.power-row button{flex:1;border:0;border-radius:16px;padding:12px;background:rgba(255,255,255,.08);color:white;font-weight:800}.power-row button:hover{background:rgba(255,255,255,.14)}
+
+    #notificationPanel{position:absolute;right:16px;bottom:92px;width:390px;max-width:calc(100vw - 32px);height:560px;z-index:2100;border-radius:32px;background:rgba(8,11,20,.88);backdrop-filter:blur(30px);border:1px solid var(--border);box-shadow:var(--shadow);display:none;padding:20px;overflow:auto}.panel-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}.panel-title{font-size:1.25rem;font-weight:900;background:linear-gradient(90deg,#ff6b6b,#4ecdc4);-webkit-background-clip:text;-webkit-text-fill-color:transparent}.icon-btn{border:0;width:38px;height:38px;border-radius:14px;background:rgba(255,255,255,.08);color:white}.icon-btn:hover{background:rgba(255,255,255,.14)}.settings-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.setting-item{min-height:82px;border-radius:19px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.08);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;transition:.2s}.setting-item:hover,.setting-item.active{background:rgba(78,205,196,.16);border-color:rgba(78,205,196,.35)}.slider-box{margin-top:18px}.slider-label{display:flex;justify-content:space-between;color:var(--muted);font-size:.9rem;margin-bottom:8px}.slider{width:100%;accent-color:var(--accent)}.notification-item{padding:13px;border-radius:18px;background:rgba(255,255,255,.07);border-left:4px solid var(--accent);margin-bottom:10px}.notification-title{font-weight:900}.notification-text{color:var(--muted);font-size:.9rem;margin-top:3px}.empty{color:var(--muted);text-align:center;padding:25px;font-style:italic}
+
+    .window{position:absolute;width:900px;height:600px;top:64px;left:64px;border-radius:25px;background:rgba(9,12,22,.86);backdrop-filter:blur(28px);border:1px solid var(--border);box-shadow:var(--shadow);display:none;overflow:hidden;z-index:100;min-width:360px;min-height:280px;animation:windowOpen .22s ease}.window-header{height:54px;background:rgba(255,255,255,.06);border-bottom:1px solid rgba(255,255,255,.1);display:flex;align-items:center;justify-content:space-between;padding:0 18px;cursor:move}.window-title{font-weight:900}.window-controls{display:flex;gap:10px}.window-control{width:15px;height:15px;border-radius:50%;transition:.18s}.window-control:hover{transform:scale(1.22)}.close{background:var(--danger)}.minimize{background:var(--warn)}.maximize{background:var(--ok)}.window-content{height:calc(100% - 54px);overflow:auto;background:rgba(0,0,0,.12)}
+
+    .files-layout{display:flex;height:100%}.sidebar{width:220px;background:rgba(0,0,0,.2);border-right:1px solid rgba(255,255,255,.1);padding:18px;overflow:auto}.side-btn{width:100%;padding:12px;margin-bottom:10px;border-radius:15px;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.07);color:white;text-align:left;font-weight:750}.side-btn:hover,.side-btn.active{background:rgba(78,205,196,.16)}.file-main{flex:1;padding:22px;overflow:auto}.file-grid{display:flex;flex-wrap:wrap;gap:14px}.file-item{width:120px;height:116px;border-radius:20px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.08);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:10px;transition:.2s}.file-item:hover{background:rgba(255,255,255,.12);transform:translateY(-4px)}.file-item i{font-size:2.3rem;color:var(--accent)}
+
+    .calculator{padding:24px;height:100%;display:flex;flex-direction:column}#calcDisplay{height:76px;border-radius:20px;border:1px solid var(--border);background:rgba(0,0,0,.3);color:white;font-size:2.2rem;text-align:right;padding:0 18px;margin-bottom:18px}.calc-buttons{flex:1;display:grid;grid-template-columns:repeat(4,1fr);gap:12px}.calc-btn{border:1px solid rgba(255,255,255,.08);border-radius:18px;background:rgba(255,255,255,.08);color:white;font-size:1.3rem}.calc-btn:hover{background:rgba(255,255,255,.14)}.operation{background:linear-gradient(135deg,#ff6b6b,#ff8e53)!important}.equals{background:linear-gradient(135deg,#4ecdc4,#45b7d1)!important}
+
+    .browser{height:100%;display:flex;flex-direction:column}.browser-bar{display:flex;gap:10px;padding:14px;background:rgba(255,255,255,.05);border-bottom:1px solid rgba(255,255,255,.1)}.browser-bar input{flex:1;padding:12px 16px;border-radius:16px;border:1px solid var(--border);background:rgba(0,0,0,.25);color:white;outline:none}.small-btn{border:0;border-radius:15px;padding:0 16px;color:white;background:linear-gradient(135deg,#263d67,#1c283c);font-weight:800}.browser-page{flex:1;background:#f5f7fb;color:#111;padding:30px;overflow:auto}.fake-search{max-width:620px;margin:40px auto;text-align:center}.fake-logo{font-size:4rem;font-weight:900;background:linear-gradient(90deg,#ff6b6b,#4ecdc4,#45b7d1);-webkit-background-clip:text;-webkit-text-fill-color:transparent}.fake-card{margin-top:20px;background:white;border-radius:24px;padding:22px;box-shadow:0 20px 50px rgba(0,0,0,.12)}
+
+    .assistant-chat,.notes-app,.settings-app,.music-app{height:100%;padding:22px;display:flex;flex-direction:column}.chat-messages{flex:1;background:rgba(0,0,0,.25);border-radius:20px;padding:15px;overflow:auto;border:1px solid rgba(255,255,255,.08)}.message{max-width:82%;padding:13px 15px;border-radius:18px;margin-bottom:10px;line-height:1.35}.message.user{margin-left:auto;background:rgba(78,205,196,.18);border:1px solid rgba(78,205,196,.25)}.message.assistant{background:rgba(255,107,107,.16);border:1px solid rgba(255,107,107,.22)}.chat-input-area{display:flex;gap:10px;margin-top:14px}.chat-input-area input,.notes-app textarea{flex:1;padding:14px 16px;border-radius:17px;border:1px solid var(--border);background:rgba(0,0,0,.25);color:white;outline:none}.chat-input-area button{border:0;border-radius:17px;padding:0 20px;background:linear-gradient(135deg,#ff6b6b,#4ecdc4);color:white;font-weight:900}.notes-app textarea{height:100%;resize:none;text-align:left;line-height:1.5}.notes-toolbar{display:flex;gap:10px;margin-bottom:12px}.settings-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px}.settings-card{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.09);border-radius:22px;padding:18px}.theme-dot{width:38px;height:38px;border-radius:15px;border:2px solid rgba(255,255,255,.2);display:inline-block;margin:8px;cursor:pointer}.music-cover{width:190px;height:190px;border-radius:35px;margin:20px auto;background:linear-gradient(135deg,#ff6b6b,#4ecdc4,#45b7d1);display:grid;place-items:center;font-size:4rem;box-shadow:0 20px 60px rgba(78,205,196,.18)}.music-controls{display:flex;justify-content:center;gap:12px;margin-top:18px}.music-controls button{width:54px;height:54px;border-radius:50%;border:0;background:rgba(255,255,255,.1);color:white;font-size:1.1rem}.music-controls button:hover{background:rgba(78,205,196,.18)}
+
+    #geometryCanvas{width:100%;height:100%;display:block}.geometry-wrap{height:100%;position:relative;background:#0a0f1f;overflow:hidden}.geometry-ui{position:absolute;top:18px;left:18px;background:rgba(0,0,0,.62);border:1px solid rgba(78,205,196,.35);border-radius:18px;padding:14px 18px;font-family:'Courier New',monospace;font-weight:900;box-shadow:0 0 30px rgba(78,205,196,.08)}.geometry-center{position:absolute;inset:0;display:grid;place-items:center;pointer-events:none}.game-card{pointer-events:auto;width:min(430px,90%);padding:34px;border-radius:30px;background:rgba(0,0,0,.78);border:1px solid rgba(78,205,196,.35);backdrop-filter:blur(20px);text-align:center;box-shadow:0 0 60px rgba(78,205,196,.14)}.game-card h2{font-size:2.5rem;margin-bottom:12px;color:var(--accent)}.game-card p{color:var(--muted);margin-bottom:20px}.game-card button{border:0;border-radius:999px;padding:15px 38px;color:white;background:linear-gradient(135deg,#4ecdc4,#45b7d1);font-weight:900;font-size:1.1rem}
+
+    #toast{position:fixed;right:24px;bottom:96px;z-index:5000;max-width:350px;display:none;padding:16px 18px;border-radius:20px;background:rgba(8,11,20,.9);backdrop-filter:blur(24px);border:1px solid var(--border);box-shadow:var(--shadow)}.toast-title{font-weight:900;color:var(--accent);margin-bottom:4px}.toast-text{color:#dce7f8}
+    #fpsCounter{position:fixed;right:25px;top:18px;z-index:2001;padding:7px 12px;border-radius:14px;background:rgba(0,0,0,.45);border:1px solid rgba(78,205,196,.25);color:var(--accent);font-family:monospace;font-weight:900}
+
+    .light-theme{--panel:rgba(255,255,255,.74);--panel-strong:rgba(255,255,255,.94);--text:#101726;--muted:#516079;--glass:rgba(0,0,0,.06);--glass2:rgba(0,0,0,.09)}
+    .purple-theme{--accent:#b983ff;--accent2:#7c4dff}.red-theme{--accent:#ff6b6b;--accent2:#ff8e53}.ice-theme{--accent:#8be9fd;--accent2:#4ecdc4}
+
+    @keyframes spin{to{transform:rotate(360deg)}}@keyframes gradient{to{background-position:300%}}@keyframes glow{from{filter:drop-shadow(0 0 15px rgba(78,205,196,.3))}to{filter:drop-shadow(0 0 28px rgba(255,107,107,.45))}}@keyframes floatBg{to{transform:rotate(360deg)}}@keyframes windowOpen{from{opacity:0;transform:scale(.86) translateY(20px)}to{opacity:1;transform:scale(1) translateY(0)}}
+  </style>
 </head>
 <body>
-    <!-- ЭКРАН ЗАГРУЗКИ -->
-    <div id="bootScreen">
-        <div class="boot-logo">MAX</div>
-        <div class="boot-text">Загрузка операционной системы...</div>
-        <div class="boot-progress">
-            <div class="boot-progress-bar" id="bootProgress"></div>
-        </div>
-        <div class="boot-text" id="bootStatus">Инициализация ядра...</div>
+  <div id="bootScreen">
+    <div class="boot-card">
+      <div class="boot-logo">MAX</div>
+      <div class="boot-version">MAX OS 0.02.0 beta • Neon Update</div>
+      <div class="boot-progress"><div id="bootProgress"></div></div>
+      <div id="bootStatus">Инициализация Neon Core...</div>
+    </div>
+  </div>
+
+  <div id="loginScreen">
+    <div class="login-card">
+      <div class="login-avatar"><i class="fa-solid fa-user-astronaut"></i></div>
+      <div class="login-title">MAX OS</div>
+      <div class="login-subtitle">0.02.0 beta • Вход в систему</div>
+      <input id="passwordInput" class="input" type="password" placeholder="Введите пароль">
+      <button id="loginButton" class="primary-btn">Войти</button>
+      <div id="createPassword" class="linkish">Создать / изменить пароль</div>
+    </div>
+  </div>
+
+  <div id="desktop">
+    <div class="desktop-grid">
+      <div class="desktop-icon" onclick="openApp('geometry')"><i class="fa-solid fa-cube" style="color:#4ecdc4"></i><span>Geometry</span></div>
+      <div class="desktop-icon" onclick="openApp('browser')"><i class="fa-solid fa-globe" style="color:#45b7d1"></i><span>Браузер</span></div>
+      <div class="desktop-icon" onclick="openApp('files')"><i class="fa-solid fa-folder" style="color:#ffd166"></i><span>Файлы</span></div>
+      <div class="desktop-icon" onclick="openApp('calculator')"><i class="fa-solid fa-calculator" style="color:#ff8e53"></i><span>Калькулятор</span></div>
+      <div class="desktop-icon" onclick="openApp('assistant')"><i class="fa-solid fa-robot" style="color:#b983ff"></i><span>Помощник</span></div>
+      <div class="desktop-icon" onclick="openApp('notes')"><i class="fa-solid fa-note-sticky" style="color:#4ecdc4"></i><span>Заметки</span></div>
+      <div class="desktop-icon" onclick="openApp('music')"><i class="fa-solid fa-music" style="color:#ff6b6b"></i><span>Плеер</span></div>
+      <div class="desktop-icon" onclick="openApp('settings')"><i class="fa-solid fa-gear" style="color:#8be9fd"></i><span>Настройки</span></div>
     </div>
 
-    <!-- ЭКРАН ВХОДА -->
-    <div id="loginScreen">
-        <div class="login-container">
-            <div class="login-title">MAX OS</div>
-            <div class="login-subtitle">Версия 0.01.0 beta</div>
-            <input type="password" id="passwordInput" class="login-input" placeholder="Введите пароль">
-            <button id="loginButton" class="login-button">Войти</button>
-            <div id="createPassword" class="login-create">Создать новый пароль</div>
-        </div>
+    <div id="startMenu">
+      <div class="start-top">
+        <div class="start-logo"><i class="fa-solid fa-bolt"></i></div>
+        <div><div class="start-title">MAX Menu</div><div class="start-sub">Neon Update • 0.02.0</div></div>
+      </div>
+      <input class="search" id="startSearch" placeholder="Поиск приложений..." oninput="filterStartApps()">
+      <div class="start-section-title">Приложения</div>
+      <div class="start-apps" id="startApps"></div>
+      <div class="start-section-title">Система</div>
+      <div class="power-row">
+        <button onclick="lockSystem()"><i class="fa-solid fa-lock"></i> Блок</button>
+        <button onclick="rebootSystem()"><i class="fa-solid fa-rotate-right"></i> Рестарт</button>
+        <button onclick="fakeShutdown()"><i class="fa-solid fa-power-off"></i> Выкл</button>
+      </div>
     </div>
 
-    <!-- РАБОЧИЙ СТОЛ -->
-    <div id="desktop">
-        <div class="desktop-overlay"></div>
-        
-        <!-- Значки рабочего стола -->
-        <div class="desktop-icons">
-            <div class="desktop-icon" onclick="openApp('geometry')">
-                <i class="fas fa-cube" style="color: #4ecdc4;"></i>
-                <div class="desktop-icon-text">Geometry Dash</div>
-            </div>
-            <div class="desktop-icon" onclick="openApp('browser')">
-                <i class="fas fa-globe"></i>
-                <div class="desktop-icon-text">Браузер</div>
-            </div>
-            <div class="desktop-icon" onclick="openApp('files')">
-                <i class="fas fa-folder"></i>
-                <div class="desktop-icon-text">Файлы</div>
-            </div>
-            <div class="desktop-icon" onclick="openApp('calculator')">
-                <i class="fas fa-calculator"></i>
-                <div class="desktop-icon-text">Калькулятор</div>
-            </div>
-            <div class="desktop-icon" onclick="openApp('assistant')">
-                <i class="fas fa-robot"></i>
-                <div class="desktop-icon-text">MAX Помощник</div>
-            </div>
-            <div class="desktop-icon" onclick="createFolder()">
-                <i class="fas fa-plus-circle"></i>
-                <div class="desktop-icon-text">Новая папка</div>
-            </div>
-            <div class="desktop-icon" onclick="openWallpapersFolder()">
-                <i class="fas fa-image"></i>
-                <div class="desktop-icon-text">Обои</div>
-            </div>
-        </div>
-
-        <!-- Панель задач -->
-        <div id="taskbar">
-            <button id="showPanel" onclick="togglePanel()">
-                <i class="fas fa-chevron-down"></i>
-            </button>
-            <div id="time">--:--</div>
-        </div>
-    </div>
-
-    <!-- ШТОРКА УВЕДОМЛЕНИЙ -->
     <div id="notificationPanel">
-        <div class="panel-header">
-            <div class="panel-title">Шторка MAX</div>
-            <button class="panel-close" onclick="togglePanel()">×</button>
-        </div>
-        
-        <!-- Быстрые настройки -->
-        <div class="quick-settings">
-            <div class="settings-title">
-                <i class="fas fa-sliders-h"></i> Быстрые настройки
-            </div>
-            
-            <div class="settings-grid">
-                <div class="setting-item active" onclick="changeTheme('dark')">
-                    <i class="fas fa-moon"></i>
-                    <div>Тёмная</div>
-                </div>
-                <div class="setting-item" onclick="changeTheme('light')">
-                    <i class="fas fa-sun"></i>
-                    <div>Светлая</div>
-                </div>
-                <div class="setting-item" onclick="changeTheme('blue')">
-                    <i class="fas fa-palette"></i>
-                    <div>Синяя</div>
-                </div>
-                <div class="setting-item" onclick="toggleWiFi()">
-                    <i class="fas fa-wifi" id="wifiIcon" style="color: #4ecdc4;"></i>
-                    <div>Wi-Fi</div>
-                </div>
-                <div class="setting-item" onclick="toggleBluetooth()">
-                    <i class="fas fa-bluetooth" id="bluetoothIcon"></i>
-                    <div>Bluetooth</div>
-                </div>
-                <div class="setting-item" onclick="toggleAirplaneMode()">
-                    <i class="fas fa-plane" id="airplaneIcon"></i>
-                    <div>Самолёт</div>
-                </div>
-            </div>
-            
-            <div class="slider-container">
-                <div class="slider-label">
-                    <span><i class="fas fa-sun"></i> Яркость</span>
-                    <span id="brightnessValue">100%</span>
-                </div>
-                <input type="range" min="20" max="100" value="100" class="slider" id="brightnessSlider">
-            </div>
-            
-            <div class="slider-container">
-                <div class="slider-label">
-                    <span><i class="fas fa-volume-up"></i> Громкость</span>
-                    <span id="volumeValue">75%</span>
-                </div>
-                <input type="range" min="0" max="100" value="75" class="slider" id="volumeSlider">
-            </div>
-        </div>
-        
-        <!-- Уведомления -->
-        <div class="notifications-section">
-            <div class="notifications-header">
-                <div class="settings-title">
-                    <i class="fas fa-bell"></i> Уведомления
-                </div>
-                <button id="clearNotifications" onclick="clearAllNotifications()">
-                    Очистить все
-                </button>
-            </div>
-            <div id="notificationsList">
-                <div class="empty-notifications">Нет новых уведомлений</div>
-            </div>
-        </div>
+      <div class="panel-header"><div class="panel-title">Центр MAX</div><button class="icon-btn" onclick="togglePanel()">×</button></div>
+      <div class="settings-grid">
+        <div class="setting-item active" onclick="setTheme('dark')"><i class="fa-solid fa-moon"></i><b>Тёмная</b></div>
+        <div class="setting-item" onclick="setTheme('light')"><i class="fa-solid fa-sun"></i><b>Светлая</b></div>
+        <div class="setting-item" onclick="setTheme('purple')"><i class="fa-solid fa-wand-magic-sparkles"></i><b>Purple</b></div>
+        <div class="setting-item" onclick="toggleState('wifi')"><i id="wifiIcon" class="fa-solid fa-wifi"></i><b>Wi‑Fi</b></div>
+        <div class="setting-item" onclick="toggleState('bluetooth')"><i id="bluetoothIcon" class="fa-brands fa-bluetooth-b"></i><b>Bluetooth</b></div>
+        <div class="setting-item" onclick="toggleState('airplane')"><i id="airplaneIcon" class="fa-solid fa-plane"></i><b>Самолёт</b></div>
+      </div>
+      <div class="slider-box"><div class="slider-label"><span>Яркость</span><span id="brightnessValue">100%</span></div><input id="brightnessSlider" class="slider" type="range" min="35" max="120" value="100"></div>
+      <div class="slider-box"><div class="slider-label"><span>Громкость</span><span id="volumeValue">75%</span></div><input id="volumeSlider" class="slider" type="range" min="0" max="100" value="75"></div>
+      <div class="panel-header" style="margin-top:24px"><div class="panel-title">Уведомления</div><button class="icon-btn" onclick="clearNotifications()"><i class="fa-solid fa-trash"></i></button></div>
+      <div id="notificationsList"><div class="empty">Нет уведомлений</div></div>
     </div>
 
-    <!-- ОКНО ИГРЫ GEOMETRY DASH -->
-    <div id="geometryWindow" class="window" style="width: 1000px; height: 650px;">
-        <div class="window-header">
-            <div class="window-title">🎮 Geometry Dash - РИТМ-ШУТЕР</div>
-            <div class="window-controls">
-                <div class="window-control minimize" onclick="minimizeWindow('geometry')"></div>
-                <div class="window-control maximize" onclick="maximizeWindow('geometry')"></div>
-                <div class="window-control close" onclick="closeWindow('geometry')"></div>
-            </div>
-        </div>
-        <div class="window-content">
-            <div class="geometry-container" id="geometryContainer">
-                <canvas id="geometryCanvas"></canvas>
-                
-                <div class="geometry-hud">
-                    <div style="margin-bottom: 15px; font-size: 1.5rem;">
-                        <i class="fas fa-star" style="color: #ffd700;"></i> 
-                        СЧЁТ: <span id="score">0</span>
-                    </div>
-                    <div style="font-size: 1.5rem;">
-                        <i class="fas fa-tachometer-alt" style="color: #4ecdc4;"></i> 
-                        СКОРОСТЬ: <span id="speedLevel">1</span>x
-                    </div>
-                </div>
-                
-                <div class="geometry-controls">
-                    <div><i class="fas fa-space-shuttle"></i> ПРОБЕЛ / КЛИК - ПРЫЖОК</div>
-                    <div><i class="fas fa-undo-alt"></i> R - РЕСТАРТ</div>
-                </div>
-                
-                <div id="gameStartScreen" class="geometry-start">
-                    <h2>🎮 GEOMETRY DASH</h2>
-                    <p>ПРЫГАЙ ЧЕРЕЗ ПРЕПЯТСТВИЯ!<br>С каждым очком скорость растёт!</p>
-                    <button onclick="startGeometryGame()">
-                        <i class="fas fa-play"></i> СТАРТ
-                    </button>
-                </div>
-                
-                <div id="gameOverScreen" class="geometry-gameover">
-                    <h2>GAME OVER</h2>
-                    <p>ТВОЙ СЧЁТ: <span id="finalScore">0</span></p>
-                    <button onclick="restartGeometryGame()">
-                        <i class="fas fa-redo-alt"></i> ЕЩЁ РАЗ
-                    </button>
-                </div>
-            </div>
-        </div>
+    <div id="taskbar">
+      <button class="max-button" onclick="toggleStartMenu()"><i class="fa-solid fa-bolt"></i></button>
+      <div id="taskbarApps"></div>
+      <div class="taskbar-spacer"></div>
+      <div class="system-tray">
+        <div class="tray-pill"><i class="fa-solid fa-wifi"></i><i class="fa-solid fa-volume-high"></i></div>
+        <div class="tray-pill clickable" onclick="togglePanel()"><i class="fa-solid fa-bell"></i></div>
+        <div class="tray-pill" id="time">--:--</div>
+      </div>
     </div>
+  </div>
+
+  <div id="geometryWindow" class="window" style="width:1000px;height:650px">
+    <div class="window-header"><div class="window-title">🎮 Geometry Dash MAX</div><div class="window-controls"><div class="window-control minimize" onclick="minimizeWindow('geometry')"></div><div class="window-control maximize" onclick="maximizeWindow('geometry')"></div><div class="window-control close" onclick="closeWindow('geometry')"></div></div></div>
+    <div class="window-content"><div class="geometry-wrap"><canvas id="geometryCanvas"></canvas><div class="geometry-ui">Счёт: <span id="score">0</span><br>Скорость: <span id="speedLevel">1</span>x<br>Рекорд: <span id="bestScore">0</span></div><div class="geometry-center" id="gameOverlay"><div class="game-card"><h2>GEOMETRY MAX</h2><p>Пробел / клик — прыжок. R — рестарт. Новые частицы и рекорд.</p><button onclick="startGeometryGame()"><i class="fa-solid fa-play"></i> Старт</button></div></div></div></div>
+  </div>
+
+  <div id="browserWindow" class="window">
+    <div class="window-header"><div class="window-title">🌐 MAX Browser</div><div class="window-controls"><div class="window-control minimize" onclick="minimizeWindow('browser')"></div><div class="window-control maximize" onclick="maximizeWindow('browser')"></div><div class="window-control close" onclick="closeWindow('browser')"></div></div></div>
+    <div class="window-content browser"><div class="browser-bar"><button class="small-btn" onclick="browserHome()"><i class="fa-solid fa-house"></i></button><input id="browserUrl" value="max://home" onkeydown="if(event.key==='Enter') browserGo()"><button class="small-btn" onclick="browserGo()">Найти</button></div><div class="browser-page" id="browserPage"></div></div>
+  </div>
+
+  <div id="filesWindow" class="window">
+    <div class="window-header"><div class="window-title">📁 MAX Files</div><div class="window-controls"><div class="window-control minimize" onclick="minimizeWindow('files')"></div><div class="window-control maximize" onclick="maximizeWindow('files')"></div><div class="window-control close" onclick="closeWindow('files')"></div></div></div>
+    <div class="window-content files-layout"><div class="sidebar"><button class="side-btn" onclick="createFolder()"><i class="fa-solid fa-folder-plus"></i> Новая папка</button><button class="side-btn" onclick="createTextFile()"><i class="fa-solid fa-file-circle-plus"></i> Новый TXT</button><button class="side-btn" onclick="deleteFolder()"><i class="fa-solid fa-trash"></i> Удалить папку</button><div id="folderList"></div></div><div class="file-main"><h2 id="folderTitle">Документы</h2><br><div class="file-grid" id="fileContent"></div></div></div>
+  </div>
+
+  <div id="calculatorWindow" class="window" style="width:410px;height:545px">
+    <div class="window-header"><div class="window-title">🧮 Калькулятор</div><div class="window-controls"><div class="window-control minimize" onclick="minimizeWindow('calculator')"></div><div class="window-control maximize" onclick="maximizeWindow('calculator')"></div><div class="window-control close" onclick="closeWindow('calculator')"></div></div></div>
+    <div class="window-content"><div class="calculator"><input id="calcDisplay" readonly value="0"><div class="calc-buttons"><button class="calc-btn" onclick="clearCalc()">C</button><button class="calc-btn" onclick="backspaceCalc()">⌫</button><button class="calc-btn" onclick="calcInput('%')">%</button><button class="calc-btn operation" onclick="calcInput('/')">÷</button><button class="calc-btn" onclick="calcInput('7')">7</button><button class="calc-btn" onclick="calcInput('8')">8</button><button class="calc-btn" onclick="calcInput('9')">9</button><button class="calc-btn operation" onclick="calcInput('*')">×</button><button class="calc-btn" onclick="calcInput('4')">4</button><button class="calc-btn" onclick="calcInput('5')">5</button><button class="calc-btn" onclick="calcInput('6')">6</button><button class="calc-btn operation" onclick="calcInput('-')">−</button><button class="calc-btn" onclick="calcInput('1')">1</button><button class="calc-btn" onclick="calcInput('2')">2</button><button class="calc-btn" onclick="calcInput('3')">3</button><button class="calc-btn operation" onclick="calcInput('+')">+</button><button class="calc-btn" onclick="calcInput('0')">0</button><button class="calc-btn" onclick="calcInput('.')">.</button><button class="calc-btn equals" onclick="calculate()">=</button></div></div></div>
+  </div>
+
+  <div id="assistantWindow" class="window" style="width:520px;height:620px">
+    <div class="window-header"><div class="window-title">🤖 MAX Assistant 2.0</div><div class="window-controls"><div class="window-control minimize" onclick="minimizeWindow('assistant')"></div><div class="window-control maximize" onclick="maximizeWindow('assistant')"></div><div class="window-control close" onclick="closeWindow('assistant')"></div></div></div>
+    <div class="window-content"><div class="assistant-chat"><div class="chat-messages" id="chatMessages"></div><div class="chat-input-area"><input id="chatInput" placeholder="Напиши команду: открой браузер, тема purple..." onkeydown="if(event.key==='Enter') sendMessage()"><button onclick="sendMessage()"><i class="fa-solid fa-paper-plane"></i></button></div></div></div>
+  </div>
+
+  <div id="notesWindow" class="window" style="width:620px;height:560px">
+    <div class="window-header"><div class="window-title">📝 MAX Notes</div><div class="window-controls"><div class="window-control minimize" onclick="minimizeWindow('notes')"></div><div class="window-control maximize" onclick="maximizeWindow('notes')"></div><div class="window-control close" onclick="closeWindow('notes')"></div></div></div>
+    <div class="window-content"><div class="notes-app"><div class="notes-toolbar"><button class="side-btn" onclick="saveNotes()">💾 Сохранить</button><button class="side-btn" onclick="clearNotes()">🗑 Очистить</button></div><textarea id="notesArea" placeholder="Пиши заметки здесь..."></textarea></div></div>
+  </div>
+
+  <div id="musicWindow" class="window" style="width:500px;height:570px">
+    <div class="window-header"><div class="window-title">🎵 MAX Player</div><div class="window-controls"><div class="window-control minimize" onclick="minimizeWindow('music')"></div><div class="window-control maximize" onclick="maximizeWindow('music')"></div><div class="window-control close" onclick="closeWindow('music')"></div></div></div>
+    <div class="window-content"><div class="music-app"><div class="music-cover"><i class="fa-solid fa-music"></i></div><h2 style="text-align:center" id="trackName">Neon Boot</h2><p style="text-align:center;color:var(--muted)">MAX OS Sound Demo</p><input id="musicProgress" class="slider" type="range" value="0" max="100"><div class="music-controls"><button onclick="prevTrack()"><i class="fa-solid fa-backward"></i></button><button onclick="toggleMusic()"><i id="musicIcon" class="fa-solid fa-play"></i></button><button onclick="nextTrack()"><i class="fa-solid fa-forward"></i></button></div></div></div>
+  </div>
+
+  <div id="settingsWindow" class="window" style="width:680px;height:560px">
+    <div class="window-header"><div class="window-title">⚙️ Настройки MAX</div><div class="window-controls"><div class="window-control minimize" onclick="minimizeWindow('settings')"></div><div class="window-control maximize" onclick="maximizeWindow('settings')"></div><div class="window-control close" onclick="closeWindow('settings')"></div></div></div>
+    <div class="window-content"><div class="settings-app"><h2>Персонализация</h2><br><div class="settings-list"><div class="settings-card"><b>Темы</b><br><span class="theme-dot" style="background:#05070d" onclick="setTheme('dark')"></span><span class="theme-dot" style="background:#f5f7fb" onclick="setTheme('light')"></span><span class="theme-dot" style="background:#7c4dff" onclick="setTheme('purple')"></span><span class="theme-dot" style="background:#ff6b6b" onclick="setTheme('red')"></span><span class="theme-dot" style="background:#8be9fd" onclick="setTheme('ice')"></span></div><div class="settings-card"><b>Обои</b><br><br><button class="side-btn" onclick="setWallpaper(1)">Горы</button><button class="side-btn" onclick="setWallpaper(2)">Космос</button><button class="side-btn" onclick="setWallpaper(3)">Градиент</button></div><div class="settings-card"><b>Версия</b><p style="color:var(--muted);margin-top:8px">MAX OS 0.02.0 beta<br>Neon Update</p></div><div class="settings-card"><b>Система</b><br><br><button class="side-btn" onclick="resetOS()">Сбросить настройки</button></div></div></div></div>
+  </div>
+
+  <div id="toast"><div class="toast-title" id="toastTitle"></div><div class="toast-text" id="toastText"></div></div>
+  <div id="fpsCounter">FPS: --</div>
+
+  <script>
+    const VERSION='0.02.0 beta';
+    const apps=[
+      ['geometry','fa-cube','Geometry'],['browser','fa-globe','Browser'],['files','fa-folder','Files'],['calculator','fa-calculator','Calc'],['assistant','fa-robot','AI'],['notes','fa-note-sticky','Notes'],['music','fa-music','Music'],['settings','fa-gear','Settings']
+    ];
+    const wallpapers={
+      1:"linear-gradient(rgba(5,7,13,.35),rgba(5,7,13,.55)),url('https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1920&q=80&auto=format&fit=crop')",
+      2:"linear-gradient(rgba(5,7,13,.35),rgba(5,7,13,.55)),url('https://images.unsplash.com/photo-1446776811953-b23d57bd21aa?w=1920&q=80&auto=format&fit=crop')",
+      3:"linear-gradient(135deg,#05070d,#10243d,#0b6b68)"
+    };
+    const state={folders:['Документы','Изображения','Музыка','Обои'],files:[{name:'README.txt',folder:'Документы',type:'txt',content:'Добро пожаловать в MAX OS 0.02.0 Neon Update!'},{name:'Список идей.txt',folder:'Документы',type:'txt',content:'MAX Store, терминал, браузер с вкладками, новые игры.'}],currentFolder:'Документы',notifications:[],theme:'dark',wallpaper:1,wifi:true,bluetooth:false,airplane:false,chat:[],notes:'',volume:75,brightness:100,bestScore:0};
+    function $(id){return document.getElementById(id)}
+    function save(){localStorage.setItem('max_os_002',JSON.stringify(state))}
+    function load(){const s=localStorage.getItem('max_os_002');if(s)Object.assign(state,JSON.parse(s))}
+
+    function bootSystem(){const msgs=['Инициализация Neon Core...','Загрузка MAX Shell...','Подключение приложений...','Подготовка рабочего стола...','MAX OS готова!'];let p=0;const t=setInterval(()=>{p+=Math.floor(Math.random()*13)+7;if(p>100)p=100;$('bootProgress').style.width=p+'%';$('bootStatus').textContent=msgs[Math.min(msgs.length-1,Math.floor(p/(100/msgs.length)))];if(p>=100){clearInterval(t);setTimeout(()=>{$('bootScreen').style.opacity='0';setTimeout(()=>{$('bootScreen').style.display='none';showLogin()},600)},400)}},170)}
+    function showLogin(){$('loginScreen').style.display='flex';$('loginButton').onclick=login;$('createPassword').onclick=createPassword;$('passwordInput').onkeydown=e=>{if(e.key==='Enter')login()};if(localStorage.getItem('max_password'))$('createPassword').textContent='Изменить пароль'}
+    function login(){const saved=localStorage.getItem('max_password');if(!saved){notify('MAX Login','Сначала создай пароль');return}if($('passwordInput').value===saved){$('loginScreen').style.display='none';startDesktop()}else{notify('MAX Login','Неверный пароль');$('passwordInput').value=''}}
+    function createPassword(){const v=$('passwordInput').value;if(v.length<4){notify('Пароль','Минимум 4 символа');return}localStorage.setItem('max_password',v);$('passwordInput').value='';notify('Пароль','Пароль установлен')}
+    function startDesktop(){$('desktop').style.display='block';renderTaskbar();renderStartApps();renderFiles();renderChat();browserHome();applyState();updateTime();setInterval(updateTime,1000);initGeometry();notify('MAX OS','Добро пожаловать в MAX OS 0.02.0 Neon Update!')}
+    function updateTime(){const n=new Date();$('time').textContent=n.toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'})}
+
+    function renderTaskbar(){$('taskbarApps').innerHTML=apps.map(a=>`<div class="taskbar-app" id="tb-${a[0]}" onclick="openApp('${a[0]}')"><i class="fa-solid ${a[1]}"></i></div>`).join('')}
+    function renderStartApps(){const q=($('startSearch')?.value||'').toLowerCase();$('startApps').innerHTML=apps.filter(a=>a[2].toLowerCase().includes(q)||a[0].includes(q)).map(a=>`<div class="start-app" onclick="openApp('${a[0]}');toggleStartMenu(false)"><i class="fa-solid ${a[1]}"></i><b>${a[2]}</b></div>`).join('')}
+    function filterStartApps(){renderStartApps()}
+    function toggleStartMenu(force){const m=$('startMenu');m.style.display=force===false?'none':(m.style.display==='block'?'none':'block');$('notificationPanel').style.display='none'}
+    function togglePanel(){const p=$('notificationPanel');p.style.display=p.style.display==='block'?'none':'block';$('startMenu').style.display='none';renderNotifications()}
+
+    let z=100;function openApp(app){const w=$(app+'Window');if(!w)return;w.style.display='block';w.style.zIndex=++z;document.querySelectorAll('.taskbar-app').forEach(x=>x.classList.remove('active'));const tb=$('tb-'+app);if(tb)tb.classList.add('active');if(app==='geometry')resizeCanvas();if(app==='notes')$('notesArea').value=state.notes;notify('MAX OS','Открыто: '+app)}
+    function closeWindow(app){const w=$(app+'Window');if(w)w.style.display='none';const tb=$('tb-'+app);if(tb)tb.classList.remove('active');if(app==='geometry')stopGeometry()}
+    function minimizeWindow(app){const w=$(app+'Window');w.animate([{transform:'scale(1)',opacity:1},{transform:'scale(.2)',opacity:0}],{duration:220,easing:'ease'});setTimeout(()=>{w.style.display='none';w.style.opacity='';w.style.transform=''},210)}
+    function maximizeWindow(app){const w=$(app+'Window');if(w.dataset.max==='1'){w.style.width=w.dataset.ow;w.style.height=w.dataset.oh;w.style.left=w.dataset.ol;w.style.top=w.dataset.ot;w.dataset.max='0'}else{w.dataset.ow=w.style.width||w.offsetWidth+'px';w.dataset.oh=w.style.height||w.offsetHeight+'px';w.dataset.ol=w.style.left||w.offsetLeft+'px';w.dataset.ot=w.style.top||w.offsetTop+'px';w.style.left='16px';w.style.top='16px';w.style.width='calc(100% - 32px)';w.style.height='calc(100% - 104px)';w.dataset.max='1'}if(app==='geometry')setTimeout(resizeCanvas,50)}
+
+    let dragged=null,ox=0,oy=0;document.addEventListener('mousedown',e=>{const h=e.target.closest('.window-header');if(h){dragged=h.closest('.window');dragged.style.zIndex=++z;ox=e.clientX-dragged.offsetLeft;oy=e.clientY-dragged.offsetTop}});document.addEventListener('mousemove',e=>{if(dragged&&dragged.dataset.max!=='1'){dragged.style.left=e.clientX-ox+'px';dragged.style.top=Math.max(0,e.clientY-oy)+'px'}});document.addEventListener('mouseup',()=>dragged=null);
+
+    function notify(title,text){state.notifications.unshift({title,text,time:new Date().toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'})});state.notifications=state.notifications.slice(0,12);$('toastTitle').textContent=title;$('toastText').textContent=text;$('toast').style.display='block';$('toast').animate([{transform:'translateX(320px)',opacity:0},{transform:'translateX(0)',opacity:1}],{duration:260});clearTimeout(window.toastTimer);window.toastTimer=setTimeout(()=>$('toast').style.display='none',3200);renderNotifications();save()}
+    function renderNotifications(){const l=$('notificationsList');l.innerHTML=state.notifications.length?state.notifications.map(n=>`<div class="notification-item"><div class="notification-title">${escapeHtml(n.title)}</div><div class="notification-text">${escapeHtml(n.text)}</div><div style="font-size:.78rem;color:var(--muted);margin-top:5px">${n.time}</div></div>`).join(''):'<div class="empty">Нет уведомлений</div>'}
+    function clearNotifications(){state.notifications=[];renderNotifications();save()}
+
+    function setTheme(t){document.body.classList.remove('light-theme','purple-theme','red-theme','ice-theme');if(t!=='dark')document.body.classList.add(t+'-theme');state.theme=t;notify('Тема','Установлена тема '+t);save()}
+    function setWallpaper(n){state.wallpaper=n;$('desktop').style.backgroundImage=wallpapers[n];notify('Обои','Обои изменены');save()}
+    function toggleState(k){state[k]=!state[k];applyState();notify('Настройки',k+': '+(state[k]?'включено':'выключено'));save()}
+    function applyState(){setTheme(state.theme||'dark');$('desktop').style.backgroundImage=wallpapers[state.wallpaper]||wallpapers[1];$('desktop').style.filter=`brightness(${state.brightness/100})`;$('brightnessSlider').value=state.brightness;$('brightnessValue').textContent=state.brightness+'%';$('volumeSlider').value=state.volume;$('volumeValue').textContent=state.volume+'%';$('wifiIcon').style.color=state.wifi?'var(--accent)':'var(--muted)';$('bluetoothIcon').style.color=state.bluetooth?'var(--accent)':'var(--muted)';$('airplaneIcon').style.color=state.airplane?'var(--accent)':'var(--muted)';$('bestScore').textContent=state.bestScore||0}
+    $('brightnessSlider').addEventListener('input',function(){state.brightness=this.value;$('brightnessValue').textContent=this.value+'%';$('desktop').style.filter=`brightness(${this.value/100})`;save()});$('volumeSlider').addEventListener('input',function(){state.volume=this.value;$('volumeValue').textContent=this.value+'%';save()});
+
+    function renderFiles(){const fl=$('folderList');fl.innerHTML='<br>'+state.folders.map(f=>`<button class="side-btn ${state.currentFolder===f?'active':''}" onclick="openFolder('${escapeAttr(f)}')"><i class="fa-solid fa-folder"></i> ${escapeHtml(f)}</button>`).join('');openFolder(state.currentFolder)}
+    function openFolder(f){state.currentFolder=f;$('folderTitle').textContent=f;const items=state.files.filter(x=>x.folder===f);$('fileContent').innerHTML=items.map(x=>`<div class="file-item" onclick="openFile('${escapeAttr(x.name)}')"><i class="fa-solid ${x.type==='txt'?'fa-file-lines':'fa-file'}"></i><span>${escapeHtml(x.name)}</span></div>`).join('')||'<div class="empty">Папка пустая</div>';save()}
+    function createFolder(){const n=prompt('Название папки:');if(!n)return;if(state.folders.includes(n))return notify('Файлы','Такая папка уже есть');state.folders.push(n);renderFiles();notify('Файлы','Папка создана: '+n)}
+    function deleteFolder(){const n=prompt('Название папки для удаления:');if(!n||!state.folders.includes(n))return notify('Файлы','Папка не найдена');if(['Документы','Обои'].includes(n))return notify('Файлы','Системную папку нельзя удалить');state.folders=state.folders.filter(f=>f!==n);state.files=state.files.filter(f=>f.folder!==n);state.currentFolder='Документы';renderFiles();notify('Файлы','Папка удалена')}
+    function createTextFile(){const n=prompt('Имя файла:','Новый файл.txt');if(!n)return;state.files.push({name:n,folder:state.currentFolder,type:'txt',content:''});openFolder(state.currentFolder);notify('Файлы','Файл создан')}
+    function openFile(n){const f=state.files.find(x=>x.name===n&&x.folder===state.currentFolder);if(f&&f.type==='txt'){openApp('notes');$('notesArea').value=f.content||'';notify('Файл','Открыт '+n)}else notify('Файл','Открыт '+n)}
+
+    let calc='0';function calcInput(v){calc=(calc==='0'&&v!=='.')?v:calc+v;$('calcDisplay').value=calc}function clearCalc(){calc='0';$('calcDisplay').value='0'}function backspaceCalc(){calc=calc.length>1?calc.slice(0,-1):'0';$('calcDisplay').value=calc}function calculate(){try{if(!/^[0-9+\-*/%. ()]+$/.test(calc))throw Error();let r=Function('"use strict";return ('+calc.replace(/%/g,'/100')+')')();if(!isFinite(r))throw Error();r=Math.round(r*1e8)/1e8;calc=String(r);$('calcDisplay').value=calc;notify('Калькулятор','Результат: '+r)}catch{$('calcDisplay').value='Ошибка';calc='0';notify('Калькулятор','Ошибка вычисления')}}
+
+    function browserHome(){$('browserPage').innerHTML=`<div class="fake-search"><div class="fake-logo">MAX Search</div><div class="fake-card"><h2>Браузер MAX 0.02</h2><p>Из-за защиты сайтов настоящий iframe часто не работает, поэтому тут встроен безопасный поиск.</p><br><input class="input" id="fakeQuery" placeholder="Напиши запрос..." onkeydown="if(event.key==='Enter'){document.getElementById('browserUrl').value=this.value;browserGo()}"><br><br><button class="primary-btn" onclick="document.getElementById('browserUrl').value=document.getElementById('fakeQuery').value;browserGo()">Искать</button></div></div>`}
+    function browserGo(){const q=$('browserUrl').value.trim();if(!q||q==='max://home')return browserHome();$('browserPage').innerHTML=`<h1>Результаты MAX Search</h1><p>Запрос: <b>${escapeHtml(q)}</b></p><br><div class="fake-card"><h2>MAX Browser</h2><p>Для настоящего поиска открой: <b>https://www.google.com/search?q=${encodeURIComponent(q)}</b></p><p style="margin-top:10px">MAX OS показывает безопасную страницу, потому что многие сайты запрещают открытие внутри браузерного iframe.</p></div>`;notify('Браузер','Поиск: '+q)}
 
-    <!-- ОКНО БРАУЗЕРА -->
-    <div id="browserWindow" class="window">
-        <div class="window-header">
-            <div class="window-title">🌐 Браузер MAX</div>
-            <div class="window-controls">
-                <div class="window-control minimize" onclick="minimizeWindow('browser')"></div>
-                <div class="window-control maximize" onclick="maximizeWindow('browser')"></div>
-                <div class="window-control close" onclick="closeWindow('browser')"></div>
-            </div>
-        </div>
-        <div class="window-content">
-            <div class="browser-bar">
-                <button class="browser-button" onclick="browserBack()"><i class="fas fa-arrow-left"></i></button>
-                <input type="text" id="browserUrl" value="https://google.com" placeholder="Введите URL...">
-                <button class="browser-button" onclick="browserGo()">Перейти</button>
-                <button class="browser-button" onclick="toggleDarkMode()"><i class="fas fa-moon"></i></button>
-            </div>
-            <iframe id="browserFrame" src="https://google.com"></iframe>
-        </div>
-    </div>
+    const aiAnswers={привет:'Привет! Я MAX Assistant 2.0.', версия:'Сейчас MAX OS 0.02.0 beta Neon Update.', помощь:'Команды: открой браузер, открой файлы, тема purple, тема dark, создай папку, заметки, музыка.', игра:'Geometry MAX: пробел или клик — прыжок, R — рестарт.', обои:'Открой Настройки и выбери обои.', спасибо:'Пожалуйста!'};
+    function renderChat(){if(!state.chat.length)state.chat=[{sender:'assistant',text:'Привет! Я MAX Assistant 2.0. Могу открывать приложения и менять темы.'}];$('chatMessages').innerHTML=state.chat.map(m=>`<div class="message ${m.sender}">${escapeHtml(m.text)}</div>`).join('');$('chatMessages').scrollTop=$('chatMessages').scrollHeight}
+    function sendMessage(){const inp=$('chatInput');const text=inp.value.trim();if(!text)return;state.chat.push({sender:'user',text});inp.value='';let r='Я пока учусь. Напиши: помощь.';const low=text.toLowerCase();for(const k in aiAnswers)if(low.includes(k))r=aiAnswers[k];if(low.includes('открой браузер')){openApp('browser');r='Открываю браузер.'}if(low.includes('открой файлы')){openApp('files');r='Открываю файлы.'}if(low.includes('калькулятор')){openApp('calculator');r='Открываю калькулятор.'}if(low.includes('заметки')){openApp('notes');r='Открываю заметки.'}if(low.includes('музыка')){openApp('music');r='Открываю плеер.'}if(low.includes('тема purple')){setTheme('purple');r='Поставил Purple тему.'}if(low.includes('тема dark')||low.includes('тёмная')){setTheme('dark');r='Поставил тёмную тему.'}state.chat.push({sender:'assistant',text:r});renderChat();save()}
+    function saveNotes(){state.notes=$('notesArea').value;notify('Заметки','Сохранено');save()}function clearNotes(){if(confirm('Очистить заметки?')){$('notesArea').value='';saveNotes()}}
 
-    <!-- ОКНО ФАЙЛОВОГО МЕНЕДЖЕРА -->
-    <div id="filesWindow" class="window">
-        <div class="window-header">
-            <div class="window-title">📁 Файловый менеджер</div>
-            <div class="window-controls">
-                <div class="window-control minimize" onclick="minimizeWindow('files')"></div>
-                <div class="window-control maximize" onclick="maximizeWindow('files')"></div>
-                <div class="window-control close" onclick="closeWindow('files')"></div>
-            </div>
-        </div>
-        <div class="window-content">
-            <div class="file-manager">
-                <div class="file-sidebar">
-                    <div class="file-actions">
-                        <button class="file-action-btn" onclick="createFolder()">
-                            <i class="fas fa-folder-plus"></i> Новая папка
-                        </button>
-                        <button class="file-action-btn" onclick="deleteSelected()">
-                            <i class="fas fa-trash"></i> Удалить
-                        </button>
-                    </div>
-                    <div style="color: #8ba0b5; margin-bottom: 15px;">📂 Папки:</div>
-                    <div id="folderList"></div>
-                </div>
-                <div class="file-content" id="fileContent"></div>
-            </div>
-        </div>
-    </div>
+    const tracks=['Neon Boot','Cyber Desktop','Glass Night'];let track=0,playing=false,prog=0,timer=null;function toggleMusic(){playing=!playing;$('musicIcon').className='fa-solid '+(playing?'fa-pause':'fa-play');if(playing){timer=setInterval(()=>{prog=(prog+1)%101;$('musicProgress').value=prog},180)}else clearInterval(timer);notify('Плеер',playing?'Воспроизведение':'Пауза')}function nextTrack(){track=(track+1)%tracks.length;$('trackName').textContent=tracks[track];prog=0;notify('Плеер','Трек: '+tracks[track])}function prevTrack(){track=(track-1+tracks.length)%tracks.length;$('trackName').textContent=tracks[track];prog=0;notify('Плеер','Трек: '+tracks[track])}
 
-    <!-- ОКНО КАЛЬКУЛЯТОРА -->
-    <div id="calculatorWindow" class="window" style="width: 400px; height: 500px;">
-        <div class="window-header">
-            <div class="window-title">🧮 Калькулятор</div>
-            <div class="window-controls">
-                <div class="window-control minimize" onclick="minimizeWindow('calculator')"></div>
-                <div class="window-control maximize" onclick="maximizeWindow('calculator')"></div>
-                <div class="window-control close" onclick="closeWindow('calculator')"></div>
-            </div>
-        </div>
-        <div class="window-content">
-            <div class="calculator">
-                <input type="text" id="calcDisplay" readonly value="0">
-                <div class="calc-buttons">
-                    <button class="calc-btn" onclick="clearCalc()">C</button>
-                    <button class="calc-btn" onclick="backspaceCalc()">⌫</button>
-                    <button class="calc-btn" onclick="calcInput('%')">%</button>
-                    <button class="calc-btn operation" onclick="calcInput('/')">÷</button>
-                    <button class="calc-btn" onclick="calcInput('7')">7</button>
-                    <button class="calc-btn" onclick="calcInput('8')">8</button>
-                    <button class="calc-btn" onclick="calcInput('9')">9</button>
-                    <button class="calc-btn operation" onclick="calcInput('*')">×</button>
-                    <button class="calc-btn" onclick="calcInput('4')">4</button>
-                    <button class="calc-btn" onclick="calcInput('5')">5</button>
-                    <button class="calc-btn" onclick="calcInput('6')">6</button>
-                    <button class="calc-btn operation" onclick="calcInput('-')">−</button>
-                    <button class="calc-btn" onclick="calcInput('1')">1</button>
-                    <button class="calc-btn" onclick="calcInput('2')">2</button>
-                    <button class="calc-btn" onclick="calcInput('3')">3</button>
-                    <button class="calc-btn operation" onclick="calcInput('+')">+</button>
-                    <button class="calc-btn" onclick="calcInput('0')">0</button>
-                    <button class="calc-btn" onclick="calcInput('.')">.</button>
-                    <button class="calc-btn equals" onclick="calculate()">=</button>
-                </div>
-            </div>
-        </div>
-    </div>
+    const canvas=$('geometryCanvas'),ctx=canvas.getContext('2d');let running=false,player,obstacles,particles,score,speed,frame,raf;function initGeometry(){resetGeometry();window.addEventListener('resize',resizeCanvas);window.addEventListener('keydown',e=>{if(e.key===' '){e.preventDefault();jump()}if(e.key.toLowerCase()==='r')startGeometryGame()});canvas.addEventListener('click',jump);resizeCanvas();drawGeometry()}function resizeCanvas(){const r=canvas.parentElement.getBoundingClientRect();canvas.width=r.width;canvas.height=r.height;resetGeometry(false)}function resetGeometry(resetScore=true){player={x:100,y:300,w:32,h:32,vy:0,g:.58,j:-12};obstacles=[];particles=[];if(resetScore){score=0;speed=5;frame=0}$('score').textContent=score||0;$('speedLevel').textContent=Math.max(1,Math.floor((speed||5)/5));$('bestScore').textContent=state.bestScore||0}function startGeometryGame(){resetGeometry();running=true;$('gameOverlay').style.display='none';cancelAnimationFrame(raf);loopGeometry();notify('Geometry','Игра началась!')}function stopGeometry(){running=false;cancelAnimationFrame(raf)}function jump(){if(!running)return;const ground=canvas.height-50-player.h;if(player.y>=ground-2){player.vy=player.j;for(let i=0;i<8;i++)particles.push({x:player.x+16,y:player.y+32,vx:Math.random()*4-2,vy:Math.random()*-3,life:28})}}function spawnObstacle(){const h=[28,36,44,52][Math.floor(Math.random()*4)];obstacles.push({x:canvas.width,y:canvas.height-50-h,w:24+Math.random()*22,h,color:['#ff6b6b','#4ecdc4','#ffd166','#b983ff'][Math.floor(Math.random()*4)],passed:false})}function loopGeometry(){if(!running)return;updateGeometry();drawGeometry();raf=requestAnimationFrame(loopGeometry)}function updateGeometry(){player.vy+=player.g;player.y+=player.vy;const ground=canvas.height-50-player.h;if(player.y>ground){player.y=ground;player.vy=0}frame++;if(frame>Math.max(34,78-speed*2)){spawnObstacle();frame=0}for(let i=obstacles.length-1;i>=0;i--){const o=obstacles[i];o.x-=speed;if(!o.passed&&o.x+o.w<player.x){o.passed=true;score+=10;$('score').textContent=score;if(score%50===0){speed+=.8;$('speedLevel').textContent=Math.max(1,Math.floor(speed/5));notify('Geometry','Скорость увеличена!')}}if(player.x<o.x+o.w&&player.x+player.w>o.x&&player.y<o.y+o.h&&player.y+player.h>o.y){gameOverGeometry()}if(o.x+o.w<0)obstacles.splice(i,1)}particles.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.vy+=.12;p.life--});particles=particles.filter(p=>p.life>0)}function drawGeometry(){ctx.clearRect(0,0,canvas.width,canvas.height);ctx.fillStyle='#0a0f1f';ctx.fillRect(0,0,canvas.width,canvas.height);ctx.fillStyle='#1c2b42';ctx.fillRect(0,canvas.height-50,canvas.width,50);ctx.strokeStyle='#4ecdc4';for(let x=-(frame%50);x<canvas.width;x+=50){ctx.beginPath();ctx.moveTo(x,canvas.height-50);ctx.lineTo(x+30,canvas.height-42);ctx.stroke()}obstacles.forEach(o=>{ctx.shadowColor=o.color;ctx.shadowBlur=18;ctx.fillStyle=o.color;ctx.fillRect(o.x,o.y,o.w,o.h);ctx.shadowBlur=0});particles.forEach(p=>{ctx.globalAlpha=p.life/28;ctx.fillStyle='#4ecdc4';ctx.beginPath();ctx.arc(p.x,p.y,3,0,Math.PI*2);ctx.fill();ctx.globalAlpha=1});ctx.shadowColor='#4ecdc4';ctx.shadowBlur=20;ctx.fillStyle='#4ecdc4';ctx.fillRect(player.x,player.y,player.w,player.h);ctx.fillStyle='white';ctx.fillRect(player.x+7,player.y+8,5,5);ctx.fillRect(player.x+20,player.y+8,5,5);ctx.shadowBlur=0}function gameOverGeometry(){running=false;cancelAnimationFrame(raf);if(score>state.bestScore){state.bestScore=score;save()}$('gameOverlay').style.display='grid';$('gameOverlay').innerHTML=`<div class="game-card"><h2>GAME OVER</h2><p>Счёт: ${score}<br>Рекорд: ${state.bestScore}</p><button onclick="startGeometryGame()"><i class="fa-solid fa-rotate-right"></i> Ещё раз</button></div>`;notify('Geometry','Игра окончена. Счёт: '+score)}
 
-    <!-- ОКНО AI ПОМОЩНИКА -->
-    <div id="assistantWindow" class="window" style="width: 500px; height: 600px;">
-        <div class="window-header">
-            <div class="window-title">🤖 MAX Помощник</div>
-            <div class="window-controls">
-                <div class="window-control minimize" onclick="minimizeWindow('assistant')"></div>
-                <div class="window-control maximize" onclick="maximizeWindow('assistant')"></div>
-                <div class="window-control close" onclick="closeWindow('assistant')"></div>
-            </div>
-        </div>
-        <div class="window-content">
-            <div class="assistant-chat">
-                <div id="assistantHeader">
-                    <div class="assistant-avatar">
-                        <i class="fas fa-robot"></i>
-                    </div>
-                    <div>
-                        <div style="font-weight: bold; font-size: 1.3rem;">MAX Помощник</div>
-                        <div style="color: #8ba0b5;">Всегда готов помочь!</div>
-                    </div>
-                </div>
-                
-                <div id="chatMessages">
-                    <div class="message assistant">
-                        Привет! Я MAX Помощник. Чем могу помочь?
-                    </div>
-                </div>
-                
-                <div class="chat-input-area">
-                    <input type="text" id="chatInput" placeholder="Введите ваш вопрос...">
-                    <button id="sendMessage" onclick="sendMessage()"><i class="fas fa-paper-plane"></i></button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- УВЕДОМЛЕНИЕ -->
-    <div class="notification-toast" id="notificationToast"></div>
-
-    <script>
-        // ========== ИГРА GEOMETRY DASH ==========
-        const canvas = document.getElementById('geometryCanvas');
-        const ctx = canvas ? canvas.getContext('2d') : null;
-        let gameRunning = false;
-        
-        // Игровые объекты
-        let player = {
-            x: 100,
-            y: 0,
-            width: 30,
-            height: 30,
-            vy: 0,
-            gravity: 0.5,
-            jumpPower: -12,
-            grounded: true
-        };
-        
-        let obstacles = [];
-        let score = 0;
-        let speed = 5;
-        let frameCount = 0;
-        let gameLoopId;
-        let obstacleInterval;
-
-        // Инициализация игры
-        function initGeometryGame() {
-            if (!canvas) return;
-            
-            function resizeCanvas() {
-                const container = document.querySelector('.geometry-container');
-                if (container) {
-                    canvas.width = container.clientWidth;
-                    canvas.height = container.clientHeight;
-                    resetGame();
-                }
-            }
-            
-            resizeCanvas();
-            window.addEventListener('resize', resizeCanvas);
-            
-            // Управление
-            window.addEventListener('keydown', (e) => {
-                if (!gameRunning) return;
-                
-                if (e.key === ' ' || e.key === 'Space') {
-                    e.preventDefault();
-                    jump();
-                }
-                if (e.key === 'r' || e.key === 'R') {
-                    restartGeometryGame();
-                }
-            });
-            
-            canvas.addEventListener('click', () => {
-                if (gameRunning) {
-                    jump();
-                }
-            });
-        }
-
-        // Прыжок
-        function jump() {
-            if (player.y >= canvas.height - player.height - 50) {
-                player.vy = player.jumpPower;
-                player.grounded = false;
-            }
-        }
-
-        // Спавн препятствия
-        function spawnObstacle() {
-            if (!gameRunning || !canvas) return;
-            
-            const types = [
-                { width: 20, height: 40, color: '#ff6b6b' },  // Высокое
-                { width: 30, height: 30, color: '#4ecdc4' },  // Квадрат
-                { width: 40, height: 20, color: '#ffd93d' },  // Низкое
-                { width: 25, height: 50, color: '#a8e6cf' }   // Очень высокое
-            ];
-            
-            const type = types[Math.floor(Math.random() * types.length)];
-            
-            obstacles.push({
-                x: canvas.width,
-                y: canvas.height - type.height - 50,
-                width: type.width,
-                height: type.height,
-                color: type.color,
-                passed: false
-            });
-        }
-
-        // Обновление игры
-        function updateGame() {
-            if (!gameRunning || !canvas) return;
-            
-            // Физика игрока
-            player.vy += player.gravity;
-            player.y += player.vy;
-            
-            // Гравитация
-            if (player.y >= canvas.height - player.height - 50) {
-                player.y = canvas.height - player.height - 50;
-                player.vy = 0;
-                player.grounded = true;
-            }
-            
-            if (player.y < 0) {
-                player.y = 0;
-                player.vy = 0;
-            }
-            
-            // Движение препятствий
-            for (let i = obstacles.length - 1; i >= 0; i--) {
-                const obs = obstacles[i];
-                obs.x -= speed;
-                
-                // Проверка прохождения
-                if (!obs.passed && obs.x + obs.width < player.x) {
-                    obs.passed = true;
-                    score += 10;
-                    document.getElementById('score').textContent = score;
-                    
-                    // Увеличение скорости каждые 50 очков
-                    if (score % 50 === 0) {
-                        speed += 1;
-                        document.getElementById('speedLevel').textContent = Math.floor(speed / 5);
-                        showNotification('Geometry Dash', `СКОРОСТЬ УВЕЛИЧЕНА! x${Math.floor(speed / 5)}`);
-                    }
-                }
-                
-                // Проверка столкновения
-                if (checkCollision(player, obs)) {
-                    gameOver();
-                    break;
-                }
-                
-                // Удаление за экраном
-                if (obs.x + obs.width < 0) {
-                    obstacles.splice(i, 1);
-                }
-            }
-            
-            // Спавн препятствий
-            frameCount++;
-            if (frameCount > Math.max(60 - speed * 2, 30)) {
-                spawnObstacle();
-                frameCount = 0;
-            }
-        }
-
-        // Проверка столкновения
-        function checkCollision(player, obstacle) {
-            return player.x < obstacle.x + obstacle.width &&
-                   player.x + player.width > obstacle.x &&
-                   player.y < obstacle.y + obstacle.height &&
-                   player.y + player.height > obstacle.y;
-        }
-
-        // Отрисовка
-        function drawGame() {
-            if (!ctx || !canvas) return;
-            
-            // Фон
-            ctx.fillStyle = '#0a0f1f';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-            
-            // Пол
-            ctx.fillStyle = '#2c3e50';
-            ctx.fillRect(0, canvas.height - 50, canvas.width, 50);
-            
-            // Разметка пола
-            ctx.strokeStyle = '#4ecdc4';
-            ctx.lineWidth = 2;
-            for (let i = 0; i < canvas.width; i += 50) {
-                ctx.beginPath();
-                ctx.moveTo(i + (frameCount % 50), canvas.height - 50);
-                ctx.lineTo(i + 30 + (frameCount % 50), canvas.height - 45);
-                ctx.stroke();
-            }
-            
-            // Препятствия
-            obstacles.forEach(obs => {
-                // Тень
-                ctx.shadowColor = obs.color;
-                ctx.shadowBlur = 15;
-                
-                ctx.fillStyle = obs.color;
-                ctx.fillRect(obs.x, obs.y, obs.width, obs.height);
-                
-                // Подсветка
-                ctx.shadowBlur = 5;
-                ctx.fillStyle = 'rgba(255,255,255,0.3)';
-                ctx.fillRect(obs.x + 2, obs.y + 2, obs.width - 4, 4);
-            });
-            
-            // Игрок (кубик)
-            ctx.shadowColor = '#4ecdc4';
-            ctx.shadowBlur = 20;
-            
-            // Тело
-            ctx.fillStyle = '#4ecdc4';
-            ctx.fillRect(player.x, player.y, player.width, player.height);
-            
-            // Глаза
-            ctx.shadowBlur = 5;
-            ctx.fillStyle = 'white';
-            ctx.fillRect(player.x + 5, player.y + 5, 5, 5);
-            ctx.fillRect(player.x + 15, player.y + 5, 5, 5);
-            
-            ctx.fillStyle = '#2c3e50';
-            ctx.fillRect(player.x + 6, player.y + 6, 3, 3);
-            ctx.fillRect(player.x + 16, player.y + 6, 3, 3);
-            
-            // Улыбка
-            ctx.beginPath();
-            ctx.strokeStyle = 'white';
-            ctx.lineWidth = 2;
-            ctx.arc(player.x + 15, player.y + 20, 5, 0, Math.PI);
-            ctx.stroke();
-            
-            // Эффект прыжка
-            if (!player.grounded) {
-                ctx.shadowBlur = 30;
-                ctx.fillStyle = 'rgba(78,205,196,0.3)';
-                ctx.beginPath();
-                ctx.arc(player.x + player.width/2, player.y + player.height, 10, 0, Math.PI * 2);
-                ctx.fill();
-            }
-            
-            ctx.shadowBlur = 0;
-        }
-
-        // Game Loop
-        function geometryGameLoop() {
-            if (!gameRunning) return;
-            updateGame();
-            drawGame();
-            gameLoopId = requestAnimationFrame(geometryGameLoop);
-        }
-
-        // Старт игры
-        function startGeometryGame() {
-            gameRunning = true;
-            resetGame();
-            
-            document.getElementById('gameStartScreen').style.display = 'none';
-            document.getElementById('gameOverScreen').style.display = 'none';
-            
-            if (obstacleInterval) clearInterval(obstacleInterval);
-            
-            geometryGameLoop();
-            showNotification('Geometry Dash', 'Игра началась! Прыгай через препятствия!');
-        }
-
-        // Сброс игры
-        function resetGame() {
-            player.y = canvas.height - player.height - 50;
-            player.vy = 0;
-            obstacles = [];
-            score = 0;
-            speed = 5;
-            frameCount = 0;
-            
-            document.getElementById('score').textContent = '0';
-            document.getElementById('speedLevel').textContent = '1';
-        }
-
-        // Game Over
-        function gameOver() {
-            gameRunning = false;
-            if (obstacleInterval) clearInterval(obstacleInterval);
-            if (gameLoopId) cancelAnimationFrame(gameLoopId);
-            
-            document.getElementById('finalScore').textContent = score;
-            document.getElementById('gameOverScreen').style.display = 'block';
-            showNotification('Geometry Dash', 'Игра окончена! Счёт: ' + score);
-        }
-
-        // Рестарт
-        function restartGeometryGame() {
-            document.getElementById('gameOverScreen').style.display = 'none';
-            startGeometryGame();
-        }
-
-        // ========== ХРАНИЛИЩЕ ДАННЫХ ==========
-        const MAX_STORAGE = {
-            password: null,
-            folders: ['Документы', 'Изображения', 'Загрузки', 'Музыка', 'Видео', 'Обои'],
-            files: [
-                {name: 'README.txt', type: 'file', folder: 'Документы'},
-                {name: 'Привет.txt', type: 'file', folder: 'Документы'},
-                {name: 'photo1.png', type: 'wallpaper', folder: 'Обои'},
-                {name: 'photo2.png', type: 'wallpaper', folder: 'Обои'},
-                {name: 'photo3.png', type: 'wallpaper', folder: 'Обои'},
-                {name: 'photo4.png', type: 'wallpaper', folder: 'Обои'},
-                {name: 'photo5.png', type: 'wallpaper', folder: 'Обои'}
-            ],
-            wallpaper: 'photo1.png',
-            theme: 'dark',
-            brightness: 100,
-            volume: 75,
-            wifiEnabled: true,
-            bluetoothEnabled: false,
-            airplaneMode: false,
-            notifications: [],
-            chatHistory: []
-        };
-
-        // ========== ЗАГРУЗКА СИСТЕМЫ ==========
-        function bootSystem() {
-            const bootMessages = [
-                'Инициализация ядра...',
-                'Загрузка драйверов...',
-                'Подготовка файловой системы...',
-                'Запуск служб...',
-                'Загрузка интерфейса...',
-                'MAX OS готова к работе!'
-            ];
-            
-            let bootProgress = 0;
-            const progressBar = document.getElementById('bootProgress');
-            const status = document.getElementById('bootStatus');
-            
-            const bootInterval = setInterval(() => {
-                bootProgress += Math.floor(Math.random() * 15) + 10;
-                if (bootProgress > 100) bootProgress = 100;
-                
-                progressBar.style.width = bootProgress + '%';
-                
-                if (bootProgress <= 100) {
-                    const index = Math.floor(bootProgress / (100 / bootMessages.length));
-                    if (index < bootMessages.length) {
-                        status.textContent = bootMessages[index];
-                    }
-                }
-                
-                if (bootProgress >= 100) {
-                    clearInterval(bootInterval);
-                    setTimeout(() => {
-                        document.getElementById('bootScreen').style.opacity = '0';
-                        setTimeout(() => {
-                            document.getElementById('bootScreen').style.display = 'none';
-                            showLoginScreen();
-                        }, 500);
-                    }, 500);
-                }
-            }, 200);
-        }
-
-        // ========== ЭКРАН ВХОДА ==========
-        function showLoginScreen() {
-            document.getElementById('loginScreen').style.display = 'flex';
-            
-            const savedPassword = localStorage.getItem('max_password');
-            if (savedPassword) {
-                MAX_STORAGE.password = savedPassword;
-                document.getElementById('createPassword').textContent = 'Изменить пароль';
-            }
-            
-            document.getElementById('loginButton').onclick = login;
-            document.getElementById('createPassword').onclick = createNewPassword;
-            
-            document.getElementById('passwordInput').onkeypress = (e) => {
-                if (e.key === 'Enter') login();
-            };
-        }
-
-        function login() {
-            const input = document.getElementById('passwordInput');
-            const savedPassword = localStorage.getItem('max_password');
-            
-            if (!savedPassword) {
-                showNotification('Ошибка', 'Сначала создайте пароль!');
-                return;
-            }
-            
-            if (input.value === savedPassword) {
-                document.getElementById('loginScreen').style.display = 'none';
-                startDesktop();
-            } else {
-                showNotification('Ошибка', 'Неверный пароль!');
-                input.value = '';
-            }
-        }
-
-        function createNewPassword() {
-            const input = document.getElementById('passwordInput');
-            if (input.value.length < 4) {
-                showNotification('Ошибка', 'Пароль должен быть не менее 4 символов!');
-                return;
-            }
-            
-            localStorage.setItem('max_password', input.value);
-            MAX_STORAGE.password = input.value;
-            showNotification('Успех', 'Пароль успешно установлен!');
-            input.value = '';
-        }
-
-        // ========== РАБОЧИЙ СТОЛ ==========
-        function startDesktop() {
-            document.getElementById('desktop').style.display = 'block';
-            updateTime();
-            setInterval(updateTime, 1000);
-            loadFileManager();
-            initGeometryGame();
-            showNotification('MAX OS', 'Добро пожаловать в MAX OS 0.01.0 beta!');
-        }
-
-        function updateTime() {
-            const now = new Date();
-            const timeStr = now.toLocaleTimeString('ru-RU', {hour: '2-digit', minute:'2-digit'});
-            document.getElementById('time').textContent = timeStr;
-        }
-
-        // ========== УВЕДОМЛЕНИЯ ==========
-        function showNotification(title, text) {
-            const notification = {
-                id: Date.now(),
-                title: title,
-                text: text,
-                time: new Date().toLocaleTimeString('ru-RU', {hour: '2-digit', minute:'2-digit'})
-            };
-            
-            MAX_STORAGE.notifications.unshift(notification);
-            if (MAX_STORAGE.notifications.length > 10) MAX_STORAGE.notifications.pop();
-            
-            updateNotificationsList();
-            
-            const toast = document.getElementById('notificationToast');
-            toast.innerHTML = `<strong>${title}:</strong> ${text}`;
-            toast.style.display = 'block';
-            setTimeout(() => { toast.style.display = 'none'; }, 3000);
-        }
-
-        function updateNotificationsList() {
-            const list = document.getElementById('notificationsList');
-            if (!list) return;
-            
-            if (MAX_STORAGE.notifications.length === 0) {
-                list.innerHTML = '<div class="empty-notifications">Нет новых уведомлений</div>';
-                return;
-            }
-            
-            list.innerHTML = MAX_STORAGE.notifications.map(n => `
-                <div class="notification-item">
-                    <div class="notification-title">${n.title}</div>
-                    <div class="notification-text">${n.text}</div>
-                    <div style="font-size: 0.8rem; color: #8ba0b5; margin-top: 5px;">${n.time}</div>
-                </div>
-            `).join('');
-        }
-
-        function clearAllNotifications() {
-            MAX_STORAGE.notifications = [];
-            updateNotificationsList();
-            showNotification('Уведомления', 'Все уведомления очищены');
-        }
-
-        // ========== ШТОРКА ==========
-        function togglePanel() {
-            const panel = document.getElementById('notificationPanel');
-            const button = document.getElementById('showPanel');
-            
-            if (panel.style.top === '15px') {
-                panel.style.top = '-400px';
-                button.innerHTML = '<i class="fas fa-chevron-down"></i>';
-            } else {
-                panel.style.top = '15px';
-                button.innerHTML = '<i class="fas fa-chevron-up"></i>';
-                updateNotificationsList();
-            }
-        }
-
-        // ========== ОКНА ПРИЛОЖЕНИЙ ==========
-        function openApp(appName) {
-            const windowId = appName + 'Window';
-            const win = document.getElementById(windowId);
-            
-            if (win) {
-                win.style.display = 'block';
-                bringToFront(windowId);
-                
-                if (appName === 'assistant') {
-                    loadChatHistory();
-                }
-                
-                if (appName === 'geometry') {
-                    setTimeout(() => {
-                        if (!gameRunning) {
-                            document.getElementById('gameStartScreen').style.display = 'block';
-                        }
-                    }, 100);
-                }
-            }
-        }
-
-        function closeWindow(appName) {
-            const windowId = appName + 'Window';
-            const win = document.getElementById(windowId);
-            if (win) win.style.display = 'none';
-        }
-
-        function minimizeWindow(appName) {
-            const win = document.getElementById(appName + 'Window');
-            win.style.transform = 'scale(0.01)';
-            win.style.opacity = '0';
-            setTimeout(() => {
-                win.style.display = 'none';
-                win.style.transform = '';
-                win.style.opacity = '';
-            }, 300);
-        }
-
-        function maximizeWindow(appName) {
-            const win = document.getElementById(appName + 'Window');
-            if (win.style.width === '100%') {
-                win.style.width = appName === 'geometry' ? '1000px' : 
-                                 appName === 'calculator' ? '400px' : 
-                                 appName === 'assistant' ? '500px' : '900px';
-                win.style.height = appName === 'geometry' ? '650px' : 
-                                  appName === 'calculator' ? '500px' : 
-                                  appName === 'assistant' ? '600px' : '600px';
-                win.style.top = '50px';
-                win.style.left = '50px';
-            } else {
-                win.style.width = '100%';
-                win.style.height = 'calc(100% - 50px)';
-                win.style.top = '0';
-                win.style.left = '0';
-            }
-        }
-
-        function bringToFront(elementId) {
-            document.querySelectorAll('.window').forEach(win => {
-                win.style.zIndex = '100';
-            });
-            document.getElementById(elementId).style.zIndex = '999';
-        }
-
-        // ========== ДРАГ-ЭНД-ДРОП ОКОН ==========
-        let draggedWindow = null;
-        let offsetX = 0, offsetY = 0;
-
-        document.addEventListener('mousedown', (e) => {
-            if (e.target.closest('.window-header')) {
-                draggedWindow = e.target.closest('.window');
-                offsetX = e.clientX - draggedWindow.offsetLeft;
-                offsetY = e.clientY - draggedWindow.offsetTop;
-                bringToFront(draggedWindow.id);
-            }
-        });
-
-        document.addEventListener('mousemove', (e) => {
-            if (draggedWindow) {
-                draggedWindow.style.left = (e.clientX - offsetX) + 'px';
-                draggedWindow.style.top = (e.clientY - offsetY) + 'px';
-            }
-        });
-
-        document.addEventListener('mouseup', () => {
-            draggedWindow = null;
-        });
-
-        // ========== ФАЙЛОВЫЙ МЕНЕДЖЕР ==========
-        function loadFileManager() {
-            const folderList = document.getElementById('folderList');
-            if (!folderList) return;
-            
-            folderList.innerHTML = '';
-            
-            MAX_STORAGE.folders.forEach(folder => {
-                const div = document.createElement('div');
-                div.className = 'file-item';
-                div.innerHTML = `<i class="fas fa-folder file-icon"></i><br><span style="color: white;">${folder}</span>`;
-                div.onclick = () => openFolder(folder);
-                folderList.appendChild(div);
-            });
-            
-            openFolder('Документы');
-        }
-
-        function openFolder(folderName) {
-            const content = document.getElementById('fileContent');
-            if (!content) return;
-            
-            content.innerHTML = `<h3 style="color: white; margin-bottom: 20px;">${folderName}</h3>`;
-            
-            if (folderName === 'Обои') {
-                openWallpapersFolderContent();
-                return;
-            }
-            
-            MAX_STORAGE.folders.forEach(folder => {
-                if (folder !== folderName) {
-                    const div = document.createElement('div');
-                    div.className = 'file-item';
-                    div.innerHTML = `<i class="fas fa-folder file-icon"></i><br><span style="color: white;">${folder}</span>`;
-                    div.onclick = () => openFolder(folder);
-                    content.appendChild(div);
-                }
-            });
-            
-            MAX_STORAGE.files.forEach(file => {
-                if (file.folder === folderName) {
-                    const icon = file.type === 'image' ? 'fa-image' : 
-                                file.type === 'music' ? 'fa-music' : 
-                                file.type === 'video' ? 'fa-video' : 
-                                file.type === 'wallpaper' ? 'fa-image' : 'fa-file';
-                    
-                    const div = document.createElement('div');
-                    div.className = 'file-item';
-                    div.innerHTML = `<i class="fas ${icon} file-icon" style="color: #4ecdc4;"></i><br><span style="color: white;">${file.name}</span>`;
-                    div.onclick = () => showNotification('Файл', `Открыт файл: ${file.name}`);
-                    content.appendChild(div);
-                }
-            });
-        }
-
-        function openWallpapersFolderContent() {
-            const content = document.getElementById('fileContent');
-            const wallpapers = [
-                {name: 'photo1.png', color: 'linear-gradient(135deg, #1a1a2e, #16213e)'},
-                {name: 'photo2.png', color: 'linear-gradient(135deg, #0f0c29, #302b63, #24243e)'},
-                {name: 'photo3.png', color: 'linear-gradient(135deg, #000428, #004e92)'},
-                {name: 'photo4.png', color: 'linear-gradient(135deg, #232526, #414345)'},
-                {name: 'photo5.png', color: 'linear-gradient(135deg, #1e3c72, #2a5298)'}
-            ];
-            
-            wallpapers.forEach(wallpaper => {
-                const div = document.createElement('div');
-                div.className = 'file-item wallpaper-item';
-                if (wallpaper.name === MAX_STORAGE.wallpaper) {
-                    div.classList.add('current');
-                }
-                
-                div.innerHTML = `
-                    <div class="wallpaper-preview" style="background: ${wallpaper.color};"></div>
-                    <div class="wallpaper-name">${wallpaper.name}</div>
-                `;
-                
-                div.onclick = () => setWallpaper(wallpaper.name);
-                content.appendChild(div);
-            });
-        }
-
-        function openWallpapersFolder() {
-            openApp('files');
-            setTimeout(() => openFolder('Обои'), 100);
-        }
-
-        function setWallpaper(name) {
-            MAX_STORAGE.wallpaper = name;
-            const wallpapers = {
-                'photo1.png': 'linear-gradient(135deg, #1a1a2e, #16213e)',
-                'photo2.png': 'linear-gradient(135deg, #0f0c29, #302b63, #24243e)',
-                'photo3.png': 'linear-gradient(135deg, #000428, #004e92)',
-                'photo4.png': 'linear-gradient(135deg, #232526, #414345)',
-                'photo5.png': 'linear-gradient(135deg, #1e3c72, #2a5298)'
-            };
-            
-            document.getElementById('desktop').style.backgroundImage = wallpapers[name];
-            localStorage.setItem('max_wallpaper', name);
-            showNotification('Обои', `Установлены обои: ${name}`);
-            
-            if (document.getElementById('filesWindow').style.display === 'block') {
-                openFolder('Обои');
-            }
-        }
-
-        function createFolder() {
-            const name = prompt('Введите имя новой папки:');
-            if (name && name.trim()) {
-                if (!MAX_STORAGE.folders.includes(name)) {
-                    MAX_STORAGE.folders.push(name);
-                    loadFileManager();
-                    showNotification('Файлы', `Создана папка: ${name}`);
-                } else {
-                    showNotification('Ошибка', 'Папка уже существует!');
-                }
-            }
-        }
-
-        function deleteSelected() {
-            const name = prompt('Введите имя папки для удаления:');
-            if (name && MAX_STORAGE.folders.includes(name) && name !== 'Обои') {
-                MAX_STORAGE.folders = MAX_STORAGE.folders.filter(f => f !== name);
-                MAX_STORAGE.files = MAX_STORAGE.files.filter(f => f.folder !== name);
-                loadFileManager();
-                showNotification('Файлы', `Папка "${name}" удалена`);
-            } else if (name === 'Обои') {
-                showNotification('Ошибка', 'Системную папку нельзя удалить!');
-            } else {
-                showNotification('Ошибка', 'Папка не найдена!');
-            }
-        }
-
-        // ========== КАЛЬКУЛЯТОР ==========
-        let calcExpression = '0';
-
-        function calcInput(value) {
-            if (calcExpression === '0' && value !== '.') {
-                calcExpression = value;
-            } else {
-                calcExpression += value;
-            }
-            document.getElementById('calcDisplay').value = calcExpression;
-        }
-
-        function clearCalc() {
-            calcExpression = '0';
-            document.getElementById('calcDisplay').value = calcExpression;
-        }
-
-        function backspaceCalc() {
-            if (calcExpression.length > 1) {
-                calcExpression = calcExpression.slice(0, -1);
-            } else {
-                calcExpression = '0';
-            }
-            document.getElementById('calcDisplay').value = calcExpression;
-        }
-
-        function calculate() {
-            try {
-                let expr = calcExpression
-                    .replace(/×/g, '*')
-                    .replace(/÷/g, '/')
-                    .replace(/%/g, '/100');
-                
-                let result = eval(expr);
-                if (isNaN(result) || !isFinite(result)) throw new Error();
-                
-                result = Math.round(result * 100000000) / 100000000;
-                document.getElementById('calcDisplay').value = result;
-                calcExpression = result.toString();
-                showNotification('Калькулятор', `Результат: ${result}`);
-            } catch {
-                document.getElementById('calcDisplay').value = 'Ошибка';
-                calcExpression = '0';
-                showNotification('Калькулятор', 'Ошибка вычисления!');
-            }
-        }
-
-        // ========== БРАУЗЕР ==========
-        function browserGo() {
-            const input = document.getElementById('browserUrl');
-            let url = input.value;
-            
-            if (!url.startsWith('http')) {
-                url = 'https://' + url;
-                input.value = url;
-            }
-            
-            document.getElementById('browserFrame').src = url;
-            showNotification('Браузер', `Переход на: ${url}`);
-        }
-
-        function browserBack() {
-            const frame = document.getElementById('browserFrame');
-            try { frame.contentWindow.history.back(); } catch(e) {}
-        }
-
-        function toggleDarkMode() {
-            const frame = document.getElementById('browserFrame');
-            frame.classList.toggle('dark-mode');
-            showNotification('Браузер', 'Тёмный режим ' + 
-                (frame.classList.contains('dark-mode') ? 'включён' : 'выключен'));
-        }
-
-        document.getElementById('browserUrl').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') browserGo();
-        });
-
-        // ========== AI ПОМОЩНИК ==========
-        const assistantResponses = {
-            'привет': 'Привет! Чем могу помочь?',
-            'как дела': 'Всё отлично! Готов помочь вам!',
-            'помощь': 'Я могу: 1. Ответить на вопросы 2. Помочь с настройками 3. Рассказать о системе',
-            'система': 'MAX OS 0.01.0 beta - операционная система на веб-технологиях',
-            'создать папку': 'Откройте файловый менеджер и нажмите "Новая папка"',
-            'браузер': 'Браузер MAX поддерживает все современные сайты',
-            'калькулятор': 'Выполняет все основные математические операции',
-            'обои': 'Зайдите в папку "Обои" в файловом менеджере',
-            'игра': 'Geometry Dash - ритм-игра! Прыгай через препятствия, нажимай ПРОБЕЛ или клик',
-            'geometry': 'Классная игра! Управление: ПРОБЕЛ - прыжок, R - рестарт',
-            'спасибо': 'Пожалуйста! Обращайтесь!'
-        };
-
-        function loadChatHistory() {
-            const chatMessages = document.getElementById('chatMessages');
-            if (!chatMessages) return;
-            
-            const savedHistory = JSON.parse(localStorage.getItem('max_chat_history') || '[]');
-            MAX_STORAGE.chatHistory = savedHistory;
-            
-            chatMessages.innerHTML = savedHistory.map(msg => 
-                `<div class="message ${msg.sender}">${msg.text}</div>`
-            ).join('');
-            
-            chatMessages.scrollTop = chatMessages.scrollHeight;
-        }
-
-        function saveChatMessage(sender, text) {
-            MAX_STORAGE.chatHistory.push({ sender, text, timestamp: new Date().toISOString() });
-            if (MAX_STORAGE.chatHistory.length > 50) {
-                MAX_STORAGE.chatHistory = MAX_STORAGE.chatHistory.slice(-50);
-            }
-            localStorage.setItem('max_chat_history', JSON.stringify(MAX_STORAGE.chatHistory));
-        }
-
-        function sendMessage() {
-            const input = document.getElementById('chatInput');
-            const message = input.value.trim();
-            if (!message) return;
-            
-            const userMsg = document.createElement('div');
-            userMsg.className = 'message user';
-            userMsg.textContent = message;
-            document.getElementById('chatMessages').appendChild(userMsg);
-            saveChatMessage('user', message);
-            input.value = '';
-            
-            setTimeout(() => {
-                let response = 'Извините, я не понял. Попробуйте спросить по-другому.';
-                
-                const lowerMsg = message.toLowerCase();
-                for (const [key, value] of Object.entries(assistantResponses)) {
-                    if (lowerMsg.includes(key)) {
-                        response = value;
-                        break;
-                    }
-                }
-                
-                if (response.includes('не понял')) {
-                    const random = [
-                        'Я всё ещё учусь и скоро научусь отвечать на этот вопрос!',
-                        'Пока не могу ответить, но я постоянно совершенствуюсь!',
-                        'Воспользуйтесь браузером для поиска информации.',
-                        'Спросите меня о системе, игре или приложениях!'
-                    ];
-                    response = random[Math.floor(Math.random() * random.length)];
-                }
-                
-                const assistantMsg = document.createElement('div');
-                assistantMsg.className = 'message assistant';
-                assistantMsg.textContent = response;
-                document.getElementById('chatMessages').appendChild(assistantMsg);
-                saveChatMessage('assistant', response);
-                
-                const chat = document.getElementById('chatMessages');
-                chat.scrollTop = chat.scrollHeight;
-            }, 500);
-        }
-
-        document.getElementById('chatInput').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') sendMessage();
-        });
-
-        // ========== БЫСТРЫЕ НАСТРОЙКИ ==========
-        function changeTheme(theme) {
-            const desktop = document.getElementById('desktop');
-            desktop.className = 'theme-' + theme;
-            showNotification('Тема', `Установлена ${theme === 'dark' ? 'тёмная' : theme === 'light' ? 'светлая' : 'синяя'} тема`);
-        }
-
-        function toggleWiFi() {
-            MAX_STORAGE.wifiEnabled = !MAX_STORAGE.wifiEnabled;
-            const icon = document.getElementById('wifiIcon');
-            icon.style.color = MAX_STORAGE.wifiEnabled ? '#4ecdc4' : '#8ba0b5';
-            showNotification('Wi-Fi', MAX_STORAGE.wifiEnabled ? 'Включён' : 'Выключен');
-        }
-
-        function toggleBluetooth() {
-            MAX_STORAGE.bluetoothEnabled = !MAX_STORAGE.bluetoothEnabled;
-            const icon = document.getElementById('bluetoothIcon');
-            icon.style.color = MAX_STORAGE.bluetoothEnabled ? '#4ecdc4' : '#8ba0b5';
-            showNotification('Bluetooth', MAX_STORAGE.bluetoothEnabled ? 'Включён' : 'Выключен');
-        }
-
-        function toggleAirplaneMode() {
-            MAX_STORAGE.airplaneMode = !MAX_STORAGE.airplaneMode;
-            const icon = document.getElementById('airplaneIcon');
-            icon.style.color = MAX_STORAGE.airplaneMode ? '#4ecdc4' : '#8ba0b5';
-            showNotification('Режим полёта', MAX_STORAGE.airplaneMode ? 'Включён' : 'Выключен');
-        }
-
-        // Инициализация слайдеров
-        document.getElementById('brightnessSlider').addEventListener('input', function() {
-            document.getElementById('brightnessValue').textContent = this.value + '%';
-            document.getElementById('desktop').style.filter = `brightness(${this.value / 100})`;
-        });
-
-        document.getElementById('volumeSlider').addEventListener('input', function() {
-            document.getElementById('volumeValue').textContent = this.value + '%';
-        });
-
-        // ========== ЗАПУСК ==========
-        window.onload = bootSystem;
-    </script>
+    function lockSystem(){$('desktop').style.display='none';$('loginScreen').style.display='flex';$('passwordInput').value='';toggleStartMenu(false);notify('MAX OS','Система заблокирована')}function rebootSystem(){location.reload()}function fakeShutdown(){$('desktop').style.display='none';$('bootScreen').style.display='flex';$('bootScreen').style.opacity='1';$('bootStatus').textContent='MAX OS выключена. Обнови страницу для запуска.';$('bootProgress').style.width='0'}function resetOS(){if(confirm('Сбросить MAX OS?')){localStorage.removeItem('max_os_002');location.reload()}}
+    function escapeHtml(s){return String(s).replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]))}function escapeAttr(s){return escapeHtml(s).replace(/`/g,'&#96;')}
+    let fpsLast=performance.now(),fpsFrames=0;function fpsLoop(now){fpsFrames++;if(now-fpsLast>=1000){$('fpsCounter').textContent='FPS: '+fpsFrames;fpsFrames=0;fpsLast=now}requestAnimationFrame(fpsLoop)}
+    window.addEventListener('load',()=>{load();bootSystem();requestAnimationFrame(fpsLoop);setInterval(save,5000)});
+  </script>
 </body>
 </html>
